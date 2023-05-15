@@ -36,24 +36,23 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
     }
 
     for (size_t i{0}; i <= points_in_slices.size(); ++i) {
-        labels_slices.push_back({});
-        auto current_labels{fit_predict_single(points_in_slices[i], labels_slices[i])};
+        labels_slices.push_back({fit_predict_single(points_in_slices[i], labels_slices[i])});
     }
 
     std::vector<Dbscan::Label> labels_final;
     Label last_max{-1};
     for (size_t i{0}; i <= points_in_slices.size(); ++i) {
         if (i > 0){
-            for (auto& label : current_labels) {
+            for (auto& label : labels_slices[i]) {
                 if (label != noise) {
                     label += last_max + 1;
                 }
             }
         }
-        if (current_labels.size() > 0) {
-            last_max = *std::max_element(current_labels.begin(), current_labels.end());
+        if (labels_slices[i].size() > 0) {
+            last_max = *std::max_element(labels_slices[i].begin(), labels_slices[i].end());
         }
-        labels_final.insert(labels_final.end(), current_labels.begin(), current_labels.end());
+        labels_final.insert(labels_final.end(), labels_slices[i].begin(), labels_slices[i].end());
     }
 
     return labels_final;
