@@ -13,6 +13,7 @@ Dbscan::Dbscan(float const eps, std::uint32_t const min_samples, std::size_t con
     , x_slices{-100, -50, 100}
 {
     labels_slices.reserve(x_slices.size() - 1);
+    labels_outputs.reserve(x_slices.size() - 1);
     //    if (num_points_hint > 0) {
     //        labels_.reserve(num_points_hint);
     //        neighbors_.reserve(num_points_hint);
@@ -36,7 +37,8 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
     }
 
     for (size_t i{0}; i <= points_in_slices.size(); ++i) {
-        labels_slices.push_back({fit_predict_single(points_in_slices[i], labels_slices[i])});
+        labels_slices.push_back({});
+        labels_outputs.push_back({fit_predict_single(points_in_slices[i], labels_slices[i])});
     }
 
     std::vector<Dbscan::Label> labels_final;
