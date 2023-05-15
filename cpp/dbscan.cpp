@@ -3,27 +3,66 @@
 #include <cmath>
 #include <iostream>
 #include <numeric>
+#include <algorithm>
 
 namespace dbscan {
 
 Dbscan::Dbscan(float const eps, std::uint32_t const min_samples, std::size_t const num_points_hint)
     : eps_squared_{eps * eps}
     , min_samples_{min_samples}
+    , x_slices{-100, -50, 100}
 {
-    if (num_points_hint > 0) {
-        labels_.reserve(num_points_hint);
-        neighbors_.reserve(num_points_hint);
-        visited_.reserve(num_points_hint);
-        to_visit_.reserve(num_points_hint);
-    }
+    labels_slices.reserve(x_slices.size() - 1);
+    //    if (num_points_hint > 0) {
+    //        labels_.reserve(num_points_hint);
+    //        neighbors_.reserve(num_points_hint);
+    //        visited_.reserve(num_points_hint);
+    //        to_visit_.reserve(num_points_hint);
+    //    }
 }
 
 auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vector<Dbscan::Label>
 {
-    labels_.assign(std::size(points), undefined);
+    std::vector<std::vector<Dbscan::Point>> points_in_slices;
+    points_in_slices.reserve(x_slices.size() + 1);
+
+    for (auto& point : points) {
+        for (size_t i = 0; i < x_slices.size() - 1; ++i) {
+            points_in_slices.push_back({});
+            if (point[0] >= x_slices[i] && point[0] < x_slices[i + 1]) {
+                points_in_slices[i].push_back(point);
+            }
+        }
+    }
+
+    std::vector<Dbscan::Label> labels_final;
+    Label last_max{-1};
+    for (size_t i{0}; i <= points_in_slices.size(); ++i) {
+        labels_slices.push_back({});
+        auto current_labels{fit_predict_single(points_in_slices[i], labels_slices[i])};
+        if (i > 0){
+            for (auto& label : current_labels) {
+                if (label != noise) {
+                    label += last_max + 1;
+                }
+            }
+        }
+        if (current_labels.size() > 0) {
+            last_max = *std::max_element(current_labels.begin(), current_labels.end());
+        }
+        labels_final.insert(labels_final.end(), current_labels.begin(), current_labels.end());
+    }
+
+    return labels_final;
+}
+
+auto Dbscan::fit_predict_single(std::vector<Dbscan::Point> const& points, std::vector<Dbscan::Label>& labels_slice)
+    -> std::vector<Dbscan::Label>
+{
+    labels_slice.assign(std::size(points), undefined);
 
     if (std::size(points) <= 1) {
-        return labels_;
+        return labels_slice;
     }
 
     Label cluster_count{0};
@@ -110,13 +149,13 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
 
     for (auto i{0UL}; i < std::size(new_points); ++i) {
         // skip point if it has already been processed
-        if (labels_[i] != undefined) {
+        if (labels_slice[i] != undefined) {
             continue;
         }
 
         // find number of neighbors of current point
         if (radius_search(i) < min_samples_) {
-            labels_[i] = noise;
+            labels_slice[i] = noise;
             continue;
         }
 
@@ -126,7 +165,7 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
         // start a new cluster.
 
         auto const current_cluster_id{cluster_count++};
-        labels_[i] = current_cluster_id;
+        labels_slice[i] = current_cluster_id;
 
         to_visit_.clear();
         visited_.assign(std::size(new_points), false);
@@ -141,21 +180,21 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
         for (auto j{0UL}; j < std::size(to_visit_); ++j) {
             auto const neighbor{to_visit_[j]};
 
-            if (labels_[neighbor] == noise) {
+            if (labels_slice[neighbor] == noise) {
                 // This was considered as a seed before, but didn't have enough points in its eps neighborhood.
                 // Since it's in the current seed's neighborhood, we label it as belonging to this label, but it
                 // won't be used as a seed again.
-                labels_[neighbor] = current_cluster_id;
+                labels_slice[neighbor] = current_cluster_id;
                 continue;
             }
 
-            if (labels_[neighbor] != undefined) {
+            if (labels_slice[neighbor] != undefined) {
                 // Point belongs already to a cluster: skip it.
                 continue;
             }
 
             // assign the current cluster's label to the neighbor
-            labels_[neighbor] = current_cluster_id;
+            labels_slice[neighbor] = current_cluster_id;
 
             // and query its neighborhood to see if it also to be considered as a core point
             if (radius_search(neighbor) < min_samples_) {
@@ -170,9 +209,9 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
         }
     }
 
-    std::vector<Label> labels(std::size(labels_));
-    for (auto i{0U}; i < std::size(labels_); ++i) {
-        labels[new_point_to_point_index_map[i]] = labels_[i];
+    std::vector<Label> labels(std::size(labels_slice));
+    for (auto i{0U}; i < std::size(labels_slice); ++i) {
+        labels[new_point_to_point_index_map[i]] = labels_slice[i];
     }
 
     return labels;
