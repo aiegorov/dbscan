@@ -25,7 +25,7 @@ Dbscan::Dbscan(float const eps, std::uint32_t const min_samples, std::size_t con
 auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vector<Dbscan::Label>
 {
     std::vector<std::vector<Dbscan::Point>> points_in_slices;
-    points_in_slices.reserve(x_slices.size() + 1);
+    points_in_slices.reserve(x_slices.size() - 1);
 
     labels_outputs.clear();
     labels_slices.clear();
