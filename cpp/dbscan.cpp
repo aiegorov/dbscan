@@ -63,7 +63,7 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
         labels_final.insert(labels_final.end(), labels_outputs[i].begin(), labels_outputs[i].end());
     }
 
-    return labels_final;
+    return labels_outputs[0]; //labels_final;
 }
 
 auto Dbscan::fit_predict_single(std::vector<Dbscan::Point> const& points, std::vector<Dbscan::Label>& labels_slice)
