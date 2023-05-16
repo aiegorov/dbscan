@@ -27,6 +27,9 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
     std::vector<std::vector<Dbscan::Point>> points_in_slices;
     points_in_slices.reserve(x_slices.size() + 1);
 
+    labels_outputs.clear();
+    labels_slices.clear();
+
     for (auto& point : points) {
         for (size_t i = 0; i < x_slices.size() - 1; ++i) {
             points_in_slices.push_back({});
@@ -36,9 +39,10 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
         }
     }
 
+    // this loop will be parallelized
     for (size_t i{0}; i <= points_in_slices.size(); ++i) {
         labels_slices.push_back({});
-        labels_outputs.push_back({fit_predict_single(points_in_slices[i], labels_slices[i])});
+        labels_outputs.push_back(fit_predict_single(points_in_slices[i], labels_slices[i]));
     }
 
     std::vector<Dbscan::Label> labels_final;
@@ -51,10 +55,10 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
                 }
             }
         }
-        if (labels_slices[i].size() > 0) {
-            last_max = *std::max_element(labels_slices[i].begin(), labels_slices[i].end());
+        if (labels_outputs[i].size() > 0) {
+            last_max = *std::max_element(labels_outputs[i].begin(), labels_outputs[i].end());
         }
-        labels_final.insert(labels_final.end(), labels_slices[i].begin(), labels_slices[i].end());
+        labels_final.insert(labels_final.end(), labels_outputs[i].begin(), labels_outputs[i].end());
     }
 
     return labels_final;
