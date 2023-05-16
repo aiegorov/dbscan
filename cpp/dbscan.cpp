@@ -60,7 +60,7 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
         if (labels_outputs[i].size() > 0) {
             last_max = *std::max_element(labels_outputs[i].begin(), labels_outputs[i].end());
         }
-        labels_final.insert(labels_final.end(), labels_outputs[i].begin(), labels_outputs[i].end());
+//        labels_final.insert(labels_final.end(), labels_outputs[i].begin(), labels_outputs[i].end());
     }
 
     return labels_outputs[0]; //labels_final;
