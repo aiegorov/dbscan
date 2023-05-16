@@ -38,13 +38,12 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
             }
         }
     }
-    std::cout << "<<<<<<<<<<<<<<<<<<<<<<< some_output" << std::endl;
 
     // this loop will be parallelized
-    for (size_t i{0}; i <= points_in_slices.size(); ++i) {
-        labels_slices.push_back({});
-        labels_outputs.push_back(fit_predict_single(points_in_slices[i], labels_slices[i]));
-    }
+//    for (size_t i{0}; i <= points_in_slices.size(); ++i) {
+//        labels_slices.push_back({});
+//        labels_outputs.push_back(fit_predict_single(points_in_slices[i], labels_slices[i]));
+//    }
 
     //TODO this is only correct assuming all the points are still within our partitions
 //    std::vector<Dbscan::Label> labels_final(points.size());
@@ -64,7 +63,8 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
 //        labels_final.insert(labels_final.end(), labels_outputs[i].begin(), labels_outputs[i].end());
 //    }
 
-    return labels_outputs[0]; //labels_final;
+    return fit_predict_single(points_in_slices[0], labels_slices[0]);
+//    return labels_outputs[0]; //labels_final;
 }
 
 auto Dbscan::fit_predict_single(std::vector<Dbscan::Point> const& points, std::vector<Dbscan::Label>& labels_slice)
