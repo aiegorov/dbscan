@@ -10,7 +10,7 @@ namespace dbscan {
 Dbscan::Dbscan(float const eps, std::uint32_t const min_samples, std::size_t const num_points_hint)
     : eps_squared_{eps * eps}
     , min_samples_{min_samples}
-    , x_slices{-100, -50, 100}
+    , x_slices{-300, 300}
 {
     labels_slices.reserve(x_slices.size() - 1);
     labels_outputs.reserve(x_slices.size() - 1);
