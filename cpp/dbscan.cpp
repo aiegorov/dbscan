@@ -24,12 +24,12 @@ Dbscan::Dbscan(float const eps, std::uint32_t const min_samples, std::size_t con
 
 auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vector<Dbscan::Label>
 {
-    std::vector<std::vector<Dbscan::Point>> points_in_slices;
-    points_in_slices.reserve(x_slices.size() - 1);
+    std::vector<std::vector<Dbscan::Point>> points_in_slices(x_slices.size() - 1);
 
-    labels_outputs.clear();
     labels_slices.clear();
+    labels_outputs.clear();
 
+    // sorting points into the areas (slices)
     for (auto& point : points) {
         for (size_t i = 0; i < x_slices.size() - 1; ++i) {
             points_in_slices.push_back({});
@@ -45,9 +45,11 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
         labels_outputs.push_back(fit_predict_single(points_in_slices[i], labels_slices[i]));
     }
 
+    //TODO this is only correct assuming all the points are still within our partitions
     std::vector<Dbscan::Label> labels_final(points.size());
+
     Label last_max{-1};
-    for (size_t i{0}; i <= points_in_slices.size(); ++i) {
+    for (size_t i{0}; i <= labels_outputs.size(); ++i) {
         if (i > 0){
             for (auto& label : labels_slices[i]) {
                 if (label != noise) {
