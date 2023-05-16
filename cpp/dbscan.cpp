@@ -46,22 +46,22 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
     }
 
     //TODO this is only correct assuming all the points are still within our partitions
-    std::vector<Dbscan::Label> labels_final(points.size());
-
-    Label last_max{-1};
-    for (size_t i{0}; i <= labels_outputs.size(); ++i) {
-        if (i > 0){
-            for (auto& label : labels_slices[i]) {
-                if (label != noise) {
-                    label += last_max + 1;
-                }
-            }
-        }
+//    std::vector<Dbscan::Label> labels_final(points.size());
+//
+//    Label last_max{-1};
+//    for (size_t i{0}; i <= labels_outputs.size(); ++i) {
+//        if (i > 0){
+//            for (auto& label : labels_slices[i]) {
+//                if (label != noise) {
+//                    label += last_max + 1;
+//                }
+//            }
+//        }
 //        if (labels_outputs[i].size() > 0) {
 //            last_max = *std::max_element(labels_outputs[i].begin(), labels_outputs[i].end());
 //        }
 //        labels_final.insert(labels_final.end(), labels_outputs[i].begin(), labels_outputs[i].end());
-    }
+//    }
 
     return labels_outputs[0]; //labels_final;
 }
