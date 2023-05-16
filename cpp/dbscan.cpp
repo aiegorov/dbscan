@@ -45,7 +45,7 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
         labels_outputs.push_back(fit_predict_single(points_in_slices[i], labels_slices[i]));
     }
 
-    std::vector<Dbscan::Label> labels_final;
+    std::vector<Dbscan::Label> labels_final(points.size());
     Label last_max{-1};
     for (size_t i{0}; i <= points_in_slices.size(); ++i) {
         if (i > 0){
