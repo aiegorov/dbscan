@@ -27,6 +27,7 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
     std::vector<std::vector<Dbscan::Point>> points_in_slices(x_slices.size() - 1);
 
     labels_slices.clear();
+    labels_slices.push_back({});
     labels_outputs.clear();
 
     // sorting points into the areas (slices)
