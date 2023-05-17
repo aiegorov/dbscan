@@ -20,7 +20,7 @@ public:
 
     [[nodiscard]] std::vector<Label> fit_predict(std::vector<Point> const& points);
 
-    [[nodiscard]] std::vector<Label> fit_predict_single(std::vector<Point> const& points, std::vector<Label>& labels_slice);
+    [[nodiscard]] std::vector<Label> fit_predict_single(std::vector<Point> const& points); //, std::vector<Label>& labels_slice);
 
 private:
     float eps_squared_;
