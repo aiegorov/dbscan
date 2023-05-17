@@ -31,9 +31,13 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
     labels_outputs.clear();
 
     // sorting points into the areas (slices)
+
+
     for (auto& point : points) {
         for (size_t i = 0; i < x_slices.size() - 1; ++i) {
-            points_in_slices.push_back({});
+            if (points_in_slices.size() < i+1) {
+                points_in_slices.push_back({});
+            }
             if (point[0] >= x_slices[i] && point[0] < x_slices[i + 1]) {
                 points_in_slices[i].push_back(point);
             }
@@ -41,8 +45,8 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
     }
 
     // this loop will be parallelized
-//    for (size_t i{0}; i <= points_in_slices.size(); ++i) {
-    for (size_t i{0}; i <= 1; ++i) {
+    for (size_t i{0}; i <= points_in_slices.size(); ++i) {
+//    for (size_t i{0}; i <= 1; ++i) {
         labels_slices.push_back({});
         labels_outputs.push_back(fit_predict_single(points_in_slices[i], labels_slices[i]));
     }
