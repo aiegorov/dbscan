@@ -4,6 +4,7 @@
 #include <iostream>
 #include <numeric>
 #include <algorithm>
+#include <cassert>
 
 namespace dbscan {
 
@@ -56,9 +57,11 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
 //    std::vector<Dbscan::Label> labels_final(points.size());
 //
 //    Label last_max{-1};
-    for (size_t i{0}; i <= labels_outputs.size(); ++i) {
-      std::vector<Dbscan::Label> labels_;
-      labels_outputs.push_back(fit_predict_single(points_in_slices[0], labels_));
+//    assert(labels_outputs.size() == 1);
+//    for (size_t i{0}; i <= labels_outputs.size(); ++i) {
+    for (size_t i{0}; i <= 1; ++i) {
+        std::vector<Dbscan::Label> labels_;
+        labels_outputs.push_back(fit_predict_single(points_in_slices[0], labels_));
     }
 //        if (i > 0){
 //            for (auto& label : labels_slices[i]) {
