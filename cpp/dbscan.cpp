@@ -12,8 +12,8 @@ Dbscan::Dbscan(float const eps, std::uint32_t const min_samples, std::size_t con
     , min_samples_{min_samples}
     , x_slices{-300, 300}
 {
-    labels_slices.reserve(x_slices.size() - 1);
-    labels_outputs.reserve(x_slices.size() - 1);
+//    labels_slices.reserve(x_slices.size() - 1);
+//    labels_outputs.reserve(x_slices.size() - 1);
     //    if (num_points_hint > 0) {
     //        labels_.reserve(num_points_hint);
     //        neighbors_.reserve(num_points_hint);
@@ -26,12 +26,11 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
 {
     std::vector<std::vector<Dbscan::Point>> points_in_slices(x_slices.size() - 1);
 
-    labels_slices.clear();
-//    labels_slices.push_back({});
-    labels_outputs.clear();
+    std::vector<std::vector<Label>> labels_slices(x_slices.size() - 1);;
+    std::vector<std::vector<Label>> labels_outputs(x_slices.size() - 1);;
 
-    labels_slices.resize(x_slices.size() - 1);
-    labels_outputs.resize(x_slices.size() - 1);
+//    labels_slices.resize(x_slices.size() - 1);
+//    labels_outputs.resize(x_slices.size() - 1);
 
     // sorting points into the areas (slices)
     for (auto& point : points) {
@@ -42,6 +41,7 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
 //            }
             if (point[0] >= x_slices[i] && point[0] < x_slices[i + 1]) {
                 points_in_slices[i].push_back(point);
+//                break;
             }
         }
     }
