@@ -41,7 +41,8 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
     }
 
     // this loop will be parallelized
-    for (size_t i{0}; i <= points_in_slices.size(); ++i) {
+//    for (size_t i{0}; i <= points_in_slices.size(); ++i) {
+    for (size_t i{0}; i <= 1; ++i) {
         labels_slices.push_back({});
         labels_outputs.push_back(fit_predict_single(points_in_slices[i], labels_slices[i]));
     }
