@@ -3,95 +3,91 @@
 #include <cmath>
 #include <iostream>
 #include <numeric>
+#include <cassert>
 #include <algorithm>
 
 namespace dbscan {
 
-Dbscan::Dbscan(float const eps, std::uint32_t const min_samples, std::size_t const num_points_hint)
+Dbscan::Dbscan(float const eps, std::uint32_t const min_samples, std::size_t const num_points_hint, const std::vector<float> & x_slices)
     : eps_squared_{eps * eps}
     , min_samples_{min_samples}
-    , x_slices{-300, 300}
+    , x_slices_{x_slices}
 {
-//    labels_slices.reserve(x_slices.size() - 1);
-//    labels_outputs.reserve(x_slices.size() - 1);
-    //    if (num_points_hint > 0) {
-    //        labels_.reserve(num_points_hint);
-    //        neighbors_.reserve(num_points_hint);
-    //        visited_.reserve(num_points_hint);
-    //        to_visit_.reserve(num_points_hint);
-    //    }
+
+    labels_outputs.reserve(x_slices.size() - 1);
+    points_in_slices.reserve(x_slices.size() - 1);
+    idx.reserve(x_slices.size() - 1);
 }
 
 auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vector<Dbscan::Label>
 {
-    std::vector<std::vector<Dbscan::Point>> points_in_slices; //(x_slices.size() - 1);
-    points_in_slices.reserve(x_slices.size() - 1);
-//
-////
-////    std::vector<std::vector<Label>> labels_slices(x_slices.size() - 1);
-    std::vector<std::vector<Dbscan::Label>> labels_outputs; //(x_slices.size() - 1);
-//    labels_outputs.reserve(x_slices.size() - 1);
-//
-//    for (size_t i = 0; i < x_slices.size() - 1; ++i) {
-//      std::vector<Dbscan::Point> points_;
-//      points_.reserve(points.size());
-//      points_in_slices.push_back(points_);
-////      labels_slices.at(i).reserve(x_slices.size());
-//      std::vector<Dbscan::Label> labels;
-//      labels.reserve(points.size());
-//      labels_outputs.push_back(labels);
-//    }
 
-//    labels_slices.resize(x_slices.size() - 1);
+      points_in_slices.clear();
+      labels_outputs.clear();
+      idx.clear();
+
+    for (uint32_t i =0; i < x_slices.size() - 1; ++i) {
+
+      std::vector<Dbscan::Point> points_;
+      points_.reserve(points.size());
+      points_in_slices.push_back(points_);
+
+      std::vector<std::uint32_t> idx_vec;
+      idx_vec.reserve(points.size());
+      idx.push_back(idx_vec);
+
+    }
+
     labels_outputs.reserve(x_slices.size() - 1);
 
-    // sorting points into the areas (slices)
-//    for (size_t i = 0; i < x_slices.size() - 1; ++i) {
-//        points_in_slices.push_back(std::vector<Point>());
-//    }
+    std::cerr << "points_in_slices.size() = " << points_in_slices.size() << std::endl;
+    for (uint32_t i =0; i < points.size(); ++i) {
+        auto & point{points[i]};
+        for (size_t j = 0; j < x_slices.size() - 1; ++j) {
 
-    for (auto& point : points) {
-        for (size_t i = 0; i < x_slices.size() - 1; ++i) {
-            if (points_in_slices.size() < i + 1) {
-                std::vector<Point> vec;
-                vec.reserve(points.size());
-                points_in_slices.push_back(vec);
-            }
-            if (point.at(0) >= x_slices.at(i) && point.at(0) < x_slices[i + 1]) {
-                points_in_slices.at(i).push_back(point);
-//                break;
+            if (point.at(0) >= x_slices.at(j) && point.at(0) < x_slices[j + 1]) {
+                points_in_slices.at(j).push_back(point);
+                idx.at(j).push_back(i);
+                break;
             }
         }
     }
 
     // this loop will be parallelized
-////    for (size_t i{0}; i <= points_in_slices.size(); ++i) {
-    for (size_t i{0}; i < 1; ++i) {
-////        labels_slices.push_back(std::vector<Dbscan::Label>());
-////        std::vector<Point> v{points_in_slices.at(i)};
-        labels_outputs.push_back(fit_predict_single(points_in_slices.at(i)));
+    #pragma omp parallel for
+    for (auto const & points_in_slice : points_in_slices){ //size_t i{0}; i < x_slices.size() - 1; ++i) {
+//        labels_outputs.push_back(fit_predict_single(points_in_slices.at(i)));
+        labels_outputs.push_back(fit_predict_single(points_in_slice));
     }
 
     //TODO this is only correct assuming all the points are still within our partitions
-//    std::vector<Dbscan::Label> labels_final(points.size());
-//
-//    Label last_max{-1};
-//    for (size_t i{0}; i <= labels_outputs.size(); ++i) {
-//        if (i > 0){
-//            for (auto& label : labels_slices.at(i)) {
-//                if (label != noise) {
-//                    label += last_max + 1;
-//                }
-//            }
-//        }
-//        if (labels_outputs.at(i).size() > 0) {
-//            last_max = *std::max_element(labels_outputs.at(i).begin(), labels_outputs.at(i).end());
-//        }
-//        labels_final.insert(labels_final.end(), labels_outputs.at(i).begin(), labels_outputs.at(i).end());
-//    }
+    std::vector<Dbscan::Label> labels_final(points.size());
+    labels_final.assign(points.size(), undefined);
 
-//    return fit_predict_single(points_in_slices.at(0), labels_slices.at(0));
-    return labels_outputs.at(0); //labels_final;
+    Label last_max{-1};
+
+    for (size_t i{0}; i < labels_outputs.size(); ++i) {
+        for (auto& label : labels_outputs.at(i)) {
+            if (i != 0 && label != noise) {
+                label += last_max + 1;
+            }
+        }
+
+        if (labels_outputs.at(i).size() > 0) {
+            last_max = *std::max_element(labels_outputs.at(i).begin(), labels_outputs.at(i).end());
+        }
+    }
+
+    for (size_t i{0}; i < labels_outputs.size(); ++i){
+        for (size_t j{0}; j < labels_outputs.at(i).size(); ++j){
+            labels_final.at(idx.at(i).at(j)) = labels_outputs.at(i).at(j);
+        }
+    }
+
+    auto const & res {labels_final};
+    std::cerr << "And the result will have size: " << res.size() << std::endl;
+
+    return res;
 }
 
 auto Dbscan::fit_predict_single(std::vector<Dbscan::Point> const& points) //, std::vector<Dbscan::Label>& labels_slice)
@@ -99,6 +95,7 @@ auto Dbscan::fit_predict_single(std::vector<Dbscan::Point> const& points) //, st
 {
     std::vector<Dbscan::Label> labels_slice;
     labels_slice.assign(std::size(points), undefined);
+    std::cerr << "Size of input points" << points.size() << std::endl;
 
     if (std::size(points) <= 1) {
         return labels_slice;
@@ -252,6 +249,8 @@ auto Dbscan::fit_predict_single(std::vector<Dbscan::Point> const& points) //, st
     for (auto i{0U}; i < std::size(labels_slice); ++i) {
         labels[new_point_to_point_index_map[i]] = labels_slice[i];
     }
+
+    std::cerr << "Output will have the size " << labels.size() << std::endl;
 
     return labels;
 }

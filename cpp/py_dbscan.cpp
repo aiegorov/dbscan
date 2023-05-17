@@ -9,7 +9,7 @@ namespace py = pybind11;
 PYBIND11_MODULE(py_dbscan, m)
 {
     py::class_<dbscan::Dbscan>(m, "DBSCAN")
-        .def(py::init<float, std::uint32_t>())
+        .def(py::init<float, std::uint32_t, std::vector<float>>())
         .def("fit_predict",
              [](dbscan::Dbscan* self, py::array_t<float, py::array::c_style | py::array::forcecast> const& array) {
                  auto const buffer_info{array.request()};

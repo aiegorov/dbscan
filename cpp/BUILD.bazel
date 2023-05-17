@@ -25,6 +25,9 @@ cc_binary(
         ":dbscan",
         "@pybind11",
     ],
+    copts = [
+        "-fopenmp",
+    ],
 )
 
 cc_binary(
