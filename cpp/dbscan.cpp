@@ -29,6 +29,7 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
     labels_slices.clear();
 //    labels_slices.push_back({});
     labels_outputs.clear();
+    labels_outputs.reserve(x_slices.size() - 1);
 
     // sorting points into the areas (slices)
     for (auto& point : points) {
@@ -40,8 +41,8 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
         }
     }
 
-    std::vector<Dbscan::Label> labels_;
-    labels_outputs.push_back(fit_predict_single(points_in_slices[0], labels_));
+//    std::vector<Dbscan::Label> labels_;
+//    labels_outputs.push_back(fit_predict_single(points_in_slices[0], labels_));
 
     // this loop will be parallelized
 //    for (size_t i{0}; i <= points_in_slices.size(); ++i) {
@@ -55,7 +56,10 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
 //    std::vector<Dbscan::Label> labels_final(points.size());
 //
 //    Label last_max{-1};
-//    for (size_t i{0}; i <= labels_outputs.size(); ++i) {
+    for (size_t i{0}; i <= labels_outputs.size(); ++i) {
+      std::vector<Dbscan::Label> labels_;
+      labels_outputs.push_back(fit_predict_single(points_in_slices[0], labels_));
+    }
 //        if (i > 0){
 //            for (auto& label : labels_slices[i]) {
 //                if (label != noise) {
