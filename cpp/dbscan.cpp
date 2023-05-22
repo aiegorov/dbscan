@@ -14,9 +14,9 @@ Dbscan::Dbscan(float const eps, std::uint32_t const min_samples, std::size_t con
     , x_slices_{x_slices}
 {
 
-    labels_outputs.reserve(x_slices.size() - 1);
-    points_in_slices.reserve(x_slices.size() - 1);
-    idx.reserve(x_slices.size() - 1);
+    labels_outputs.reserve(x_slices_.size() - 1);
+    points_in_slices.reserve(x_slices_.size() - 1);
+    idx.reserve(x_slices_.size() - 1);
 }
 
 auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vector<Dbscan::Label>
@@ -26,7 +26,7 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
       labels_outputs.clear();
       idx.clear();
 
-    for (uint32_t i =0; i < x_slices.size() - 1; ++i) {
+    for (uint32_t i =0; i < x_slices_.size() - 1; ++i) {
 
       std::vector<Dbscan::Point> points_;
       points_.reserve(points.size());
@@ -38,14 +38,14 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
 
     }
 
-    labels_outputs.reserve(x_slices.size() - 1);
+    labels_outputs.reserve(x_slices_.size() - 1);
 
     std::cerr << "points_in_slices.size() = " << points_in_slices.size() << std::endl;
     for (uint32_t i =0; i < points.size(); ++i) {
         auto & point{points[i]};
-        for (size_t j = 0; j < x_slices.size() - 1; ++j) {
+        for (size_t j = 0; j < x_slices_.size() - 1; ++j) {
 
-            if (point.at(0) >= x_slices.at(j) && point.at(0) < x_slices[j + 1]) {
+            if (point.at(0) >= x_slices_.at(j) && point.at(0) < x_slices_[j + 1]) {
                 points_in_slices.at(j).push_back(point);
                 idx.at(j).push_back(i);
                 break;
@@ -55,7 +55,7 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
 
     // this loop will be parallelized
     #pragma omp parallel for
-    for (auto const & points_in_slice : points_in_slices){ //size_t i{0}; i < x_slices.size() - 1; ++i) {
+    for (auto const & points_in_slice : points_in_slices){ //size_t i{0}; i < x_slices_.size() - 1; ++i) {
 //        labels_outputs.push_back(fit_predict_single(points_in_slices.at(i)));
         labels_outputs.push_back(fit_predict_single(points_in_slice));
     }
