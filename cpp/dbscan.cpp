@@ -24,7 +24,8 @@ Dbscan::Dbscan(float const eps,
 auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vector<Dbscan::Label>
 {
     points_in_slices.clear();
-//    labels_outputs.clear();
+    labels_outputs.clear();
+    labels_outputs.resize(x_slices_.size() - 1);
     idx.clear();
 
     for (uint32_t i = 0; i < x_slices_.size() - 1; ++i) {
@@ -51,7 +52,7 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
     }
 
 // this loop will be parallelized
-//#pragma omp parallel for
+#pragma omp parallel for
     for (size_t i = 0; i < x_slices_.size() - 1; ++i) {
         labels_outputs.at(i) = fit_predict_single(points_in_slices.at(i));
 
