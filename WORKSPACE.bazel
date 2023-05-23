@@ -39,3 +39,22 @@ pip_parse(
 load("@pypi//:requirements.bzl", "install_deps")
 
 install_deps()
+
+http_archive(
+    name = "rules_debian",
+    sha256 = "aeb539271af85d41cf970054527ea8bc97ff7b3f664073f0552b2c9c0572ea62",
+    strip_prefix = "rules_debian-e374e319b864d5bd251407565eebc8ddf0e6597f",
+    url = "https://github.com/psigen/rules_debian/archive/e374e319b864d5bd251407565eebc8ddf0e6597f.tar.gz",
+)
+
+load("@rules_debian//:debian.bzl", "deb_package")
+
+deb_package(
+    name = "libgomp1",
+    export_cc = True,
+    sha256 = "126c97f6e43cedf656fccc096f45dfb236ad1ce6ef41b8e0c57df8229b97c8f0",
+    urls = [
+        "http://security.ubuntu.com/ubuntu/pool/main/g/gcc-10/libgomp1_10.3.0-1ubuntu1~20.04_amd64.deb",
+    ],
+)
+
