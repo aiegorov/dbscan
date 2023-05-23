@@ -39,7 +39,6 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
 
     labels_outputs.reserve(x_slices_.size() - 1);
 
-    std::cerr << "points_in_slices.size() = " << points_in_slices.size() << std::endl;
     for (uint32_t i = 0; i < points.size(); ++i) {
         auto& point{points[i]};
         for (size_t j = 0; j < x_slices_.size() - 1; ++j) {
@@ -83,7 +82,7 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
     }
 
     auto const& res{labels_final};
-    std::cerr << "And the result will have size: " << res.size() << std::endl;
+//    std::cerr << "And the result will have size: " << res.size() << std::endl;
 
     return res;
 }
@@ -93,7 +92,7 @@ auto Dbscan::fit_predict_single(std::vector<Dbscan::Point> const& points)  //, s
 {
     std::vector<Dbscan::Label> labels_slice;
     labels_slice.assign(std::size(points), undefined);
-    std::cerr << "Size of input points" << points.size() << std::endl;
+//    std::cerr << "Size of input points" << points.size() << std::endl;
 
     if (std::size(points) <= 1) {
         return labels_slice;
@@ -248,7 +247,7 @@ auto Dbscan::fit_predict_single(std::vector<Dbscan::Point> const& points)  //, s
         labels[new_point_to_point_index_map[i]] = labels_slice[i];
     }
 
-    std::cerr << "Output will have the size " << labels.size() << std::endl;
+//    std::cerr << "Output will have the size " << labels.size() << std::endl;
 
     return labels;
 }
