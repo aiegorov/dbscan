@@ -16,7 +16,7 @@ Dbscan::Dbscan(float const eps,
     , min_samples_{min_samples}
     , x_slices_{x_slices}
 {
-    labels_outputs.reserve(x_slices_.size() - 1);
+    labels_outputs.resize(x_slices_.size() - 1);
     points_in_slices.reserve(x_slices_.size() - 1);
     idx.reserve(x_slices_.size() - 1);
 }
@@ -24,7 +24,7 @@ Dbscan::Dbscan(float const eps,
 auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vector<Dbscan::Label>
 {
     points_in_slices.clear();
-    labels_outputs.clear();
+//    labels_outputs.clear();
     idx.clear();
 
     for (uint32_t i = 0; i < x_slices_.size() - 1; ++i) {
@@ -52,9 +52,10 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
 
 // this loop will be parallelized
 //#pragma omp parallel for
-    for (auto const& points_in_slice : points_in_slices) {  // size_t i{0}; i < x_slices_.size() - 1; ++i) {
-        //        labels_outputs.push_back(fit_predict_single(points_in_slices.at(i)));
-        labels_outputs.push_back(fit_predict_single(points_in_slice));
+    for (size_t i{0}; i < x_slices_.size() - 1; ++i) {
+        labels_outputs.at(i) = fit_predict_single(points_in_slices.at(i));
+
+//        labels_outputs.push_back(fit_predict_single(points_in_slice));
     }
 
     // TODO this is only correct assuming all the points are still within our partitions
