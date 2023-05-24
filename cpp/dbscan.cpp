@@ -5,6 +5,7 @@
 #include <numeric>
 #include <cassert>
 #include <algorithm>
+#include <chrono>
 
 namespace dbscan {
 
@@ -23,22 +24,30 @@ Dbscan::Dbscan(float const eps,
 
 auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vector<Dbscan::Label>
 {
+
+    auto ts1 = std::chrono::high_resolution_clock::now();
     points_in_slices.clear();
     labels_outputs.clear();
     labels_outputs.resize(x_slices_.size() - 1);
     idx.clear();
 
     for (uint32_t i = 0; i < x_slices_.size() - 1; ++i) {
-        std::vector<Dbscan::Point> points_;
-        points_.reserve(points.size());
-        points_in_slices.push_back(points_);
+//        std::vector<Dbscan::Point> points_;
+//        points_.reserve(
+        points_in_slices.emplace_back();
+        points_in_slices.back().reserve(points.size());
 
-        std::vector<std::uint32_t> idx_vec;
-        idx_vec.reserve(points.size());
-        idx.push_back(idx_vec);
+//        std::vector<std::uint32_t> idx_vec;
+        idx.emplace_back();
+        idx.back().reserve(points.size());
+//        idx_vec.reserve(points.size());
+//        idx.push_back(idx_vec);
     }
 
-    labels_outputs.reserve(x_slices_.size() - 1);
+    auto ts2 = std::chrono::high_resolution_clock::now();
+    std::cerr << "resizes took " << std::chrono::duration_cast<std::chrono::seconds>(ts2 - ts1) << std::endl;
+
+//    labels_outputs.reserve(x_slices_.size() - 1);
 
     for (uint32_t i = 0; i < points.size(); ++i) {
         auto& point{points[i]};
@@ -50,6 +59,9 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
             }
         }
     }
+
+    auto ts3 = std::chrono::high_resolution_clock::now();
+    std::cerr << "sorting took " << std::chrono::duration_cast<std::chrono::seconds>(ts3 - ts2) << std::endl;
 
 // this loop will be parallelized
 #pragma omp parallel for
