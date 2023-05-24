@@ -71,7 +71,7 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
 //        labels_outputs.push_back(fit_predict_single(points_in_slice));
     }
     auto ts4 = std::chrono::high_resolution_clock::now();
-    std::cerr << "execution took " << std::chrono::duration_cast<std::chrono::microseconds>(ts4 - ts3) << std::endl;
+    std::cerr << "execution took " << std::chrono::duration_cast<std::chrono::milliseconds>(ts4 - ts3) << std::endl;
 
     // TODO this is only correct assuming all the points are still within our partitions
     std::vector<Dbscan::Label> labels_final(points.size());
