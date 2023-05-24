@@ -64,7 +64,7 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
     std::cerr << "sorting took " << std::chrono::duration_cast<std::chrono::microseconds>(ts3 - ts2) << std::endl;
 
 // this loop will be parallelized
-#pragma omp parallel for
+//#pragma omp parallel for
     for (size_t i = 0; i < x_slices_.size() - 1; ++i) {
         labels_outputs.at(i) = fit_predict_single(points_in_slices.at(i));
 
