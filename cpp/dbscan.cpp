@@ -45,7 +45,7 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
     }
 
     auto ts2 = std::chrono::high_resolution_clock::now();
-    std::cerr << "resizes took " << std::chrono::duration_cast<std::chrono::milliseconds>(ts2 - ts1) << std::endl;
+    std::cerr << "resizes took " << std::chrono::duration_cast<std::chrono::microseconds>(ts2 - ts1) << std::endl;
 
 //    labels_outputs.reserve(x_slices_.size() - 1);
 
@@ -61,7 +61,7 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
     }
 
     auto ts3 = std::chrono::high_resolution_clock::now();
-    std::cerr << "sorting took " << std::chrono::duration_cast<std::chrono::seconds>(ts3 - ts2) << std::endl;
+    std::cerr << "sorting took " << std::chrono::duration_cast<std::chrono::microseconds>(ts3 - ts2) << std::endl;
 
 // this loop will be parallelized
 #pragma omp parallel for
@@ -70,6 +70,8 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
 
 //        labels_outputs.push_back(fit_predict_single(points_in_slice));
     }
+    auto ts4 = std::chrono::high_resolution_clock::now();
+    std::cerr << "execution took " << std::chrono::duration_cast<std::chrono::microseconds>(ts4 - ts3) << std::endl;
 
     // TODO this is only correct assuming all the points are still within our partitions
     std::vector<Dbscan::Label> labels_final(points.size());
