@@ -45,7 +45,7 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
     }
 
     auto ts2 = std::chrono::high_resolution_clock::now();
-    std::cerr << "resizes took " << std::chrono::duration_cast<std::chrono::seconds>(ts2 - ts1) << std::endl;
+    std::cerr << "resizes took " << std::chrono::duration_cast<std::chrono::milliseconds>(ts2 - ts1) << std::endl;
 
 //    labels_outputs.reserve(x_slices_.size() - 1);
 
