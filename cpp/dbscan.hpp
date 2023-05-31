@@ -32,6 +32,7 @@ private:
 
     // scratch memory we only have as members to avoid allocations for each call to `fit_predict()`
     //    std::vector<std::vector<Label>> labels_slices;
+    //    std::vector<Label> labels_;
     std::vector<std::vector<Label>> labels_outputs;
     std::vector<std::vector<Point>> points_in_slices;
     std::vector<std::vector<std::uint32_t>> idx;

@@ -1,8 +1,46 @@
 #include "cpp/dbscan.hpp"
 
 #include <nanoflann.hpp>
+#include <cmath>
+#include <iostream>
+#include <numeric>
+#include <cassert>
+#include <algorithm>
+#include <chrono>
 
 namespace dbscan {
+
+namespace {
+
+class PointsVectorAdaptor
+{
+public:
+    explicit PointsVectorAdaptor(std::vector<Dbscan::Point> const& points)
+        : points_{points}
+    {
+    }
+
+    std::size_t kdtree_get_point_count() const
+    {
+        return std::size(points_);
+    }
+
+    float kdtree_get_pt(std::size_t idx, int dim) const
+    {
+        return points_[idx][dim];
+    }
+
+    template <typename Bbox>
+    bool kdtree_get_bbox(Bbox&) const
+    {
+        return false;
+    }
+
+private:
+    std::vector<Dbscan::Point> const& points_;
+};
+
+}  // namespace
 
 Dbscan::Dbscan(float const eps,
                std::uint32_t const min_samples,
@@ -13,7 +51,7 @@ Dbscan::Dbscan(float const eps,
     , x_slices_{x_slices}
 {
     if (num_points_hint > 0) {
-        labels_.reserve(num_points_hint);
+//        labels_.reserve(num_points_hint);
         neighbors_.reserve(num_points_hint);
         visited_.reserve(num_points_hint);
         to_visit_.reserve(num_points_hint);
@@ -23,6 +61,9 @@ Dbscan::Dbscan(float const eps,
     points_in_slices.reserve(x_slices_.size() - 1);
     idx.reserve(x_slices_.size() - 1);
 }
+
+auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vector<Dbscan::Label>
+{
 
     auto ts1 = std::chrono::high_resolution_clock::now();
     points_in_slices.clear();
@@ -105,6 +146,8 @@ Dbscan::Dbscan(float const eps,
 auto Dbscan::fit_predict_single(std::vector<Dbscan::Point> const& points) -> std::vector<Dbscan::Label>
 {
     PointsVectorAdaptor adapter{points};
+
+    std::vector<Label> labels_;
 
     constexpr auto num_dims{2};
     constexpr auto leaf_size{32};
