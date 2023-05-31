@@ -13,6 +13,10 @@ cc_library(
     visibility = ["//visibility:public"],
     deps = [
         "@nanoflann",
+        "@libgomp1//:cc",
+    ],
+    copts = [
+        "-fopenmp",
     ],
 )
 
@@ -24,6 +28,9 @@ cc_binary(
     deps = [
         ":dbscan",
         "@pybind11",
+    ],
+    copts = [
+        "-fopenmp",
     ],
 )
 
