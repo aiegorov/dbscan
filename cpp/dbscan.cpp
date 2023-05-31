@@ -17,7 +17,7 @@ Dbscan::Dbscan(float const eps,
     , min_samples_{min_samples}
     , x_slices_{x_slices}
 {
-    labels_outputs.resize(x_slices_.size() - 1);
+    labels_outputs.reserve(x_slices_.size() - 1);
     points_in_slices.reserve(x_slices_.size() - 1);
     idx.reserve(x_slices_.size() - 1);
 }
