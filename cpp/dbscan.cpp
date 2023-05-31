@@ -27,7 +27,7 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
 
     auto ts1 = std::chrono::high_resolution_clock::now();
     points_in_slices.clear();
-    labels_outputs.clear();
+//    labels_outputs.clear();
     labels_outputs.resize(x_slices_.size() - 1);
     idx.clear();
 
