@@ -4,41 +4,13 @@
 
 namespace dbscan {
 
-namespace {
-
-class PointsVectorAdaptor
-{
-public:
-    explicit PointsVectorAdaptor(std::vector<Dbscan::Point> const& points)
-        : points_{points}
-    {
-    }
-
-    std::size_t kdtree_get_point_count() const
-    {
-        return std::size(points_);
-    }
-
-    float kdtree_get_pt(std::size_t idx, int dim) const
-    {
-        return points_[idx][dim];
-    }
-
-    template <typename Bbox>
-    bool kdtree_get_bbox(Bbox&) const
-    {
-        return false;
-    }
-
-private:
-    std::vector<Dbscan::Point> const& points_;
-};
-
-}  // namespace
-
-Dbscan::Dbscan(float const eps, std::uint32_t const min_samples, std::size_t const num_points_hint)
+Dbscan::Dbscan(float const eps,
+               std::uint32_t const min_samples,
+               const std::vector<float> x_slices,
+               std::size_t const num_points_hint)
     : eps_squared_{eps * eps}
     , min_samples_{min_samples}
+    , x_slices_{x_slices}
 {
     if (num_points_hint > 0) {
         labels_.reserve(num_points_hint);
@@ -46,9 +18,91 @@ Dbscan::Dbscan(float const eps, std::uint32_t const min_samples, std::size_t con
         visited_.reserve(num_points_hint);
         to_visit_.reserve(num_points_hint);
     }
+
+    labels_outputs.resize(x_slices_.size() - 1);
+    points_in_slices.reserve(x_slices_.size() - 1);
+    idx.reserve(x_slices_.size() - 1);
 }
 
-auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vector<Dbscan::Label>
+    auto ts1 = std::chrono::high_resolution_clock::now();
+    points_in_slices.clear();
+    labels_outputs.clear();
+    labels_outputs.resize(x_slices_.size() - 1);
+    idx.clear();
+
+    for (uint32_t i = 0; i < x_slices_.size() - 1; ++i) {
+//        std::vector<Dbscan::Point> points_;
+//        points_.reserve(
+        points_in_slices.emplace_back();
+        points_in_slices.back().reserve(points.size());
+
+//        std::vector<std::uint32_t> idx_vec;
+        idx.emplace_back();
+        idx.back().reserve(points.size());
+//        idx_vec.reserve(points.size());
+//        idx.push_back(idx_vec);
+    }
+
+    auto ts2 = std::chrono::high_resolution_clock::now();
+    std::cerr << "resizes took " << std::chrono::duration_cast<std::chrono::microseconds>(ts2 - ts1).count() << "mcs" << std::endl;
+
+//    labels_outputs.reserve(x_slices_.size() - 1);
+
+    for (uint32_t i = 0; i < points.size(); ++i) {
+        auto& point{points[i]};
+        for (size_t j = 0; j < x_slices_.size() - 1; ++j) {
+            if (point.at(0) >= x_slices_.at(j) && point.at(0) < x_slices_[j + 1]) {
+                points_in_slices.at(j).push_back(point);
+                idx.at(j).push_back(i);
+                break;
+            }
+        }
+    }
+
+    auto ts3 = std::chrono::high_resolution_clock::now();
+    std::cerr << "sorting took " << std::chrono::duration_cast<std::chrono::microseconds>(ts3 - ts2).count() << "mcs" << std::endl;
+
+// this loop will be parallelized
+#pragma omp parallel for
+    for (size_t i = 0; i < x_slices_.size() - 1; ++i) {
+        labels_outputs.at(i) = fit_predict_single(points_in_slices.at(i));
+
+//        labels_outputs.push_back(fit_predict_single(points_in_slice));
+    }
+    auto ts4 = std::chrono::high_resolution_clock::now();
+    std::cerr << "execution took " << std::chrono::duration_cast<std::chrono::milliseconds>(ts4 - ts3).count() << "ms" << std::endl;
+
+    // TODO this is only correct assuming all the points are still within our partitions
+    std::vector<Dbscan::Label> labels_final(points.size());
+    labels_final.assign(points.size(), undefined);
+
+    Label last_max{-1};
+
+    for (size_t i{0}; i < labels_outputs.size(); ++i) {
+        for (auto& label : labels_outputs.at(i)) {
+            if (i != 0 && label != noise) {
+                label += last_max + 1;
+            }
+        }
+
+        if (labels_outputs.at(i).size() > 0) {
+            last_max = *std::max_element(labels_outputs.at(i).begin(), labels_outputs.at(i).end());
+        }
+    }
+
+    for (size_t i{0}; i < labels_outputs.size(); ++i) {
+        for (size_t j{0}; j < labels_outputs.at(i).size(); ++j) {
+            labels_final.at(idx.at(i).at(j)) = labels_outputs.at(i).at(j);
+        }
+    }
+
+    auto const& res{labels_final};
+//    std::cerr << "And the result will have size: " << res.size() << std::endl;
+
+    return res;
+}
+
+auto Dbscan::fit_predict_single(std::vector<Dbscan::Point> const& points) -> std::vector<Dbscan::Label>
 {
     PointsVectorAdaptor adapter{points};
 
