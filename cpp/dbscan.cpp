@@ -17,18 +17,25 @@ Dbscan::Dbscan(float const eps,
     , min_samples_{min_samples}
     , x_slices_{x_slices}
 {
-    labels_outputs.reserve(x_slices_.size() - 1);
-    points_in_slices.reserve(x_slices_.size() - 1);
-    idx.reserve(x_slices_.size() - 1);
+    labels_outputs.resize(x_slices_.size() - 1);
+    points_in_slices.resize(x_slices_.size() - 1);
+    idx.resize(x_slices_.size() - 1);
+
+//    for (size_t i= 0; i< x_slices.size() - 1; ++i){
+//        labels_outputs.at(i).resize(x_slices_.size() - 1);
+//        points_in_slices.at(i).resize(x_slices_.size() - 1);
+//        idx.at(i).resize(x_slices_.size() - 1);
+//    }
 }
 
 auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vector<Dbscan::Label>
 {
 
     auto ts1 = std::chrono::high_resolution_clock::now();
+
     points_in_slices.clear();
 //    labels_outputs.clear();
-    labels_outputs.resize(x_slices_.size() - 1);
+//    labels_outputs.resize(x_slices_.size() - 1);
     idx.clear();
 
     for (uint32_t i = 0; i < x_slices_.size() - 1; ++i) {
@@ -40,14 +47,14 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
 //        std::vector<std::uint32_t> idx_vec;
         idx.emplace_back();
         idx.back().reserve(points.size());
+
+        labels_outputs.at(i).reserve(points.size());
 //        idx_vec.reserve(points.size());
 //        idx.push_back(idx_vec);
     }
 
     auto ts2 = std::chrono::high_resolution_clock::now();
     std::cerr << "resizes took " << std::chrono::duration_cast<std::chrono::microseconds>(ts2 - ts1).count() << "mcs" << std::endl;
-
-//    labels_outputs.reserve(x_slices_.size() - 1);
 
     for (uint32_t i = 0; i < points.size(); ++i) {
         auto& point{points[i]};
@@ -65,7 +72,7 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
 
 // this loop will be parallelized
 //size_t i{0};
-#pragma omp parallel for num_threads(16)
+#pragma omp parallel for //num_threads(16)
     for (int i = 0; i < x_slices_.size() - 1; ++i) {
         labels_outputs.at(i) = fit_predict_single(points_in_slices.at(i));
 
