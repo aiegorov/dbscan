@@ -58,8 +58,8 @@ Dbscan::Dbscan(float const eps,
     }
 
     labels_outputs.resize(x_slices_.size() - 1);
-    points_in_slices.reserve(x_slices_.size() - 1);
-    idx.reserve(x_slices_.size() - 1);
+    points_in_slices.resize(x_slices_.size() - 1);
+    idx.resize(x_slices_.size() - 1);
 }
 
 auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vector<Dbscan::Label>
@@ -67,8 +67,8 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
 
     auto ts1 = std::chrono::high_resolution_clock::now();
     points_in_slices.clear();
-    labels_outputs.clear();
-    labels_outputs.resize(x_slices_.size() - 1);
+//    labels_outputs.clear();
+//    labels_outputs.resize(x_slices_.size() - 1);
     idx.clear();
 
     for (uint32_t i = 0; i < x_slices_.size() - 1; ++i) {
@@ -80,6 +80,8 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
 //        std::vector<std::uint32_t> idx_vec;
         idx.emplace_back();
         idx.back().reserve(points.size());
+
+        labels_outputs.at(i).reserve(points.size());
 //        idx_vec.reserve(points.size());
 //        idx.push_back(idx_vec);
     }
