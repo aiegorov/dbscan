@@ -15,7 +15,8 @@ Dbscan::Dbscan(float const eps,
                std::size_t const num_points_hint)
     : eps_squared_{eps * eps}
     , min_samples_{min_samples}
-    , x_slices_{x_slices}
+    , x_slices_{x_slices},
+    iter_{0}
 {
     labels_outputs.resize(x_slices_.size() - 1);
     points_in_slices.resize(x_slices_.size() - 1);
@@ -31,6 +32,8 @@ Dbscan::Dbscan(float const eps,
 auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vector<Dbscan::Label>
 {
 
+    std::cerr << "Iter: " << iter_ << std::endl;
+    iter_++;
     auto ts1 = std::chrono::high_resolution_clock::now();
 
     points_in_slices.clear();

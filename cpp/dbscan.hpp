@@ -25,10 +25,13 @@ public:
     [[nodiscard]] std::vector<Label> fit_predict_single(
         std::vector<Point> const& points);  //, std::vector<Label>& labels_slice);
 
+
 private:
     float eps_squared_;
     std::uint32_t min_samples_;
     std::vector<float> x_slices_;
+
+    unsigned int iter_;
 
     // scratch memory we only have as members to avoid allocations for each call to `fit_predict()`
     //    std::vector<std::vector<Label>> labels_slices;
