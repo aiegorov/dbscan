@@ -118,6 +118,9 @@ auto Dbscan::fit_predict_single(std::vector<Dbscan::Point> const& points)  //, s
     -> std::vector<Dbscan::Label>
 {
     std::vector<Dbscan::Label> labels_slice;
+    std::vector<bool> visited_;
+    std::vector<std::uint32_t> to_visit_;
+
     labels_slice.assign(std::size(points), undefined);
 //    std::cerr << "Size of input points" << points.size() << std::endl;
 

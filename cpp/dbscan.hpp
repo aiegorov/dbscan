@@ -38,9 +38,9 @@ private:
     std::vector<std::vector<Label>> labels_outputs;
     std::vector<std::vector<Point>> points_in_slices;
     std::vector<std::vector<std::uint32_t>> idx;
-    std::vector<std::pair<std::uint32_t, float>> neighbors_;
-    std::vector<bool> visited_;
-    std::vector<std::uint32_t> to_visit_;
+//    std::vector<std::pair<std::uint32_t, float>> neighbors_;
+//    std::vector<bool> visited_;
+//    std::vector<std::uint32_t> to_visit_;
 };
 
 }  // namespace dbscan
