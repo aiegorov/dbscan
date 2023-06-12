@@ -3,6 +3,7 @@
 #include <cmath>
 #include <iostream>
 #include <numeric>
+#include <algorithm>
 
 namespace dbscan {
 
@@ -81,7 +82,7 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
         new_point_to_point_index_map[new_pt_index] = i++;
     }
 
-    //
+    //  figuring out which points are the neighbors
 
     static std::array<std::vector<std::uint32_t>, 32> neighbors;
     for (auto i = 0; i < 32; ++i) neighbors[i].reserve(16364);
@@ -90,36 +91,36 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
         return v * v;
     };
 
-    // auto radius_search = [&](std::uint32_t pt_index) -> std::uint32_t {
-    //     neighbors.clear();
-    //     auto const& pt = new_points[pt_index];
-    //     auto const bin_x = static_cast<std::int32_t>(std::floor((pt[0] - min[0]) / eps));
-    //     auto const bin_y = static_cast<std::int32_t>(std::floor((pt[1] - min[1]) / eps));
-    //     for (auto neighbor_bin_y = bin_y - 1; neighbor_bin_y <= bin_y + 1; ++neighbor_bin_y) {
-    //         for (auto neighbor_bin_x = bin_x - 1; neighbor_bin_x <= bin_x + 1; ++neighbor_bin_x) {
-    //             if (neighbor_bin_x < 0 || neighbor_bin_x >= num_bins_x || neighbor_bin_y < 0 ||
-    //                 neighbor_bin_y >= num_bins_y) {
-    //                 continue;
-    //             }
-    //             auto const neighbor_bin = neighbor_bin_y * num_bins_x + neighbor_bin_x;
-    //             for (auto i{0U}; i < counts[neighbor_bin]; ++i) {
-    //                 auto const neighbor_pt_index = offsets[neighbor_bin] + i;
-    //                 if (neighbor_pt_index == pt_index /*|| visited_[neighbor_pt_index]*/) {
-    //                     continue;
-    //                 }
-    //                 auto const neighbor_pt = new_points[neighbor_pt_index];
-    //                 if ((square(neighbor_pt[0] - pt[0]) + square(neighbor_pt[1] - pt[1])) < eps_squared_) {
-    //                     neighbors.push_back(neighbor_pt_index);
-    //                 }
-    //             }
-    //         }
-    //     }
-    //     return neighbors.size();
-    // };
+//     auto radius_search = [&](std::uint32_t pt_index) -> std::uint32_t {
+//         neighbors.clear();
+//         auto const& pt = new_points[pt_index];
+//         auto const bin_x = static_cast<std::int32_t>(std::floor((pt[0] - min[0]) / eps));
+//         auto const bin_y = static_cast<std::int32_t>(std::floor((pt[1] - min[1]) / eps));
+//         for (auto neighbor_bin_y = bin_y - 1; neighbor_bin_y <= bin_y + 1; ++neighbor_bin_y) {
+//             for (auto neighbor_bin_x = bin_x - 1; neighbor_bin_x <= bin_x + 1; ++neighbor_bin_x) {
+//                 if (neighbor_bin_x < 0 || neighbor_bin_x >= num_bins_x || neighbor_bin_y < 0 ||
+//                     neighbor_bin_y >= num_bins_y) {
+//                     continue;
+//                 }
+//                 auto const neighbor_bin = neighbor_bin_y * num_bins_x + neighbor_bin_x;
+//                 for (auto i{0U}; i < counts[neighbor_bin]; ++i) {
+//                     auto const neighbor_pt_index = offsets[neighbor_bin] + i;
+//                     if (neighbor_pt_index == pt_index /*|| visited_[neighbor_pt_index]*/) {
+//                         continue;
+//                     }
+//                     auto const neighbor_pt = new_points[neighbor_pt_index];
+//                     if ((square(neighbor_pt[0] - pt[0]) + square(neighbor_pt[1] - pt[1])) < eps_squared_) {
+//                         neighbors.push_back(neighbor_pt_index);
+//                     }
+//                 }
+//             }
+//         }
+//         return neighbors.size();
+//     };
 
     std::vector<std::uint32_t> num_neighbors(std::size(new_points), 0);
 
-    // #pragma omp parallel for
+    #pragma omp parallel for shared(labels_)
     for (auto i = 0UL; i < std::size(new_points); ++i) {
         auto const& pt = new_points[i];
         auto const bin_x = static_cast<std::int32_t>(std::floor((pt[0] - min[0]) / eps));
@@ -159,29 +160,34 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
         }
         if (std::size(local_neighbors) > min_samples_) {
             for (auto const n : local_neighbors) {
-                labels_[n] = i;
+                if (labels_[n == noise]){
+                    labels_[n] = i;
+                }
+                else {
+                    labels_[n] = std::min(static_cast<unsigned long int>(labels_[n]), i);
+                }
             }
         }
     }
 
-    bool done = false;
-    while (!done) {
-        done = true;
-        for (auto i = 0UL; i < std::size(new_points); ++i) {
-            if (labels_[i] == undefined) {
-                labels_[i] = noise;
-                continue;
-            }
-
-            auto const core_point_index = labels_[i];
-            auto const new_core_point_index = std::min(core_point_index, labels_[core_point_index]);
-            if (core_point_index != new_core_point_index) {
-                labels_[i] = new_core_point_index;
-                done = false;
-            }
-        }
-    }
-
+//    bool done = false;
+//    while (!done) {
+//        done = true;
+//        for (auto i = 0UL; i < std::size(new_points); ++i) {
+//            if (labels_[i] == undefined) {
+//                labels_[i] = noise;
+//                continue;
+//            }
+//
+//            auto const core_point_index = labels_[i];
+//            auto const new_core_point_index = std::min(core_point_index, labels_[core_point_index]);
+//            if (core_point_index != new_core_point_index) {
+//                labels_[i] = new_core_point_index;
+//                done = false;
+//            }
+//        }
+//    }
+//
     // Label invalid = noise;
     // labels_.assign(std::size(new_points), invalid);
 
