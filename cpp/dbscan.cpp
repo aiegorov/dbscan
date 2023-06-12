@@ -34,6 +34,7 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
 
     auto const eps = std::sqrt(eps_squared_);
 
+    // calculate min_max of the current point cloud
     Dbscan::Point min{points[0]};
     Dbscan::Point max{points[0]};
     for (auto const& pt : points) {
@@ -43,13 +44,16 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
         max[1] = std::max(max[1], pt[1]);
     }
 
+    // derive num_bins out of it
     float const range_x = max[0] - min[0];
     float const range_y = max[1] - min[1];
     auto const num_bins_x = static_cast<std::uint32_t>(std::ceil(range_x / eps));
     auto const num_bins_y = static_cast<std::uint32_t>(std::ceil(range_y / eps));
 
+    // count number of points in every bin
     std::vector<std::uint32_t> counts(num_bins_x * num_bins_y);
 
+    // FIRST PASS OVER THE POINTS
     for (auto const& pt : points) {
         auto const bin_x = static_cast<std::uint32_t>(std::floor((pt[0] - min[0]) / eps));
         auto const bin_y = static_cast<std::uint32_t>(std::floor((pt[1] - min[1]) / eps));
@@ -57,10 +61,12 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
         counts[index] += 1;
     }
 
+    // calculate the offsets for each cell (bin)
     std::vector<std::uint32_t> offsets{};
     offsets.reserve(std::size(counts));
     std::exclusive_scan(std::cbegin(counts), std::cend(counts), std::back_inserter(offsets), 0);
 
+    // re-sorting the points (calculating index mapping) based on the bin indices
     auto scratch = offsets;
     std::vector<Point> new_points(std::size(points));
     std::vector<std::uint32_t> new_point_to_point_index_map(std::size(points));
@@ -74,6 +80,8 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
         new_points[new_pt_index] = pt;
         new_point_to_point_index_map[new_pt_index] = i++;
     }
+
+    //
 
     static std::array<std::vector<std::uint32_t>, 32> neighbors;
     for (auto i = 0; i < 32; ++i) neighbors[i].reserve(16364);
