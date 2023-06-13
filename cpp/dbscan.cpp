@@ -165,7 +165,7 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
                     labels_[n] = i;
                 }
                 else {
-                    labels_[n] = std::min(static_cast<unsigned long int>(labels_[n]), i);
+                    labels_[n] = std::min(labels_[n], static_cast<Label>(i));
                 }
             }
         }
