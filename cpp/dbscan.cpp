@@ -291,7 +291,6 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
     // }
 
     std::vector <int32_t> labels_bin_vector(std::size(labels_), 0);
-//    for (size_t i = 0; i < std::size(real_class_ids_2_new_class_ids); ++i){
     for (const auto & class_label : labels_){
         assert (class_label < labels_bin_vector.size());
         labels_bin_vector[class_label] = 1;
@@ -299,6 +298,7 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
     std::vector <uint32_t> real_class_ids_2_new_class_ids;
     real_class_ids_2_new_class_ids.reserve(labels_bin_vector.size());
     std::inclusive_scan(labels_bin_vector.begin(), labels_bin_vector.end(), real_class_ids_2_new_class_ids.begin());
+    std::cerr << "scan completed" << std::endl;
     for (const auto class_id : real_class_ids_2_new_class_ids){
         std::cerr << class_id << " ";
     }
