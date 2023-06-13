@@ -4,6 +4,7 @@
 #include <iostream>
 #include <numeric>
 #include <algorithm>
+#include <cassert>
 
 namespace dbscan {
 
@@ -292,7 +293,7 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
     std::vector <int32_t> labels_bin_vector(std::size(labels_), 0);
 //    for (size_t i = 0; i < std::size(real_class_ids_2_new_class_ids); ++i){
     for (const auto & class_label : labels_){
-//        assert
+        assert (class_label < labels_bin_vector.size());
         labels_bin_vector[class_label] = 1;
     }
     std::vector <uint32_t> real_class_ids_2_new_class_ids;
