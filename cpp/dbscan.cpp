@@ -93,38 +93,38 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
         return v * v;
     };
 
-//     auto radius_search = [&](std::uint32_t pt_index) -> std::uint32_t {
-//         neighbors.clear();
-//         auto const& pt = new_points[pt_index];
-//         auto const bin_x = static_cast<std::int32_t>(std::floor((pt[0] - min[0]) / eps));
-//         auto const bin_y = static_cast<std::int32_t>(std::floor((pt[1] - min[1]) / eps));
-//         for (auto neighbor_bin_y = bin_y - 1; neighbor_bin_y <= bin_y + 1; ++neighbor_bin_y) {
-//             for (auto neighbor_bin_x = bin_x - 1; neighbor_bin_x <= bin_x + 1; ++neighbor_bin_x) {
-//                 if (neighbor_bin_x < 0 || neighbor_bin_x >= num_bins_x || neighbor_bin_y < 0 ||
-//                     neighbor_bin_y >= num_bins_y) {
-//                     continue;
-//                 }
-//                 auto const neighbor_bin = neighbor_bin_y * num_bins_x + neighbor_bin_x;
-//                 for (auto i{0U}; i < counts[neighbor_bin]; ++i) {
-//                     auto const neighbor_pt_index = offsets[neighbor_bin] + i;
-//                     if (neighbor_pt_index == pt_index /*|| visited_[neighbor_pt_index]*/) {
-//                         continue;
-//                     }
-//                     auto const neighbor_pt = new_points[neighbor_pt_index];
-//                     if ((square(neighbor_pt[0] - pt[0]) + square(neighbor_pt[1] - pt[1])) < eps_squared_) {
-//                         neighbors.push_back(neighbor_pt_index);
-//                     }
-//                 }
-//             }
-//         }
-//         return neighbors.size();
-//     };
+    //     auto radius_search = [&](std::uint32_t pt_index) -> std::uint32_t {
+    //         neighbors.clear();
+    //         auto const& pt = new_points[pt_index];
+    //         auto const bin_x = static_cast<std::int32_t>(std::floor((pt[0] - min[0]) / eps));
+    //         auto const bin_y = static_cast<std::int32_t>(std::floor((pt[1] - min[1]) / eps));
+    //         for (auto neighbor_bin_y = bin_y - 1; neighbor_bin_y <= bin_y + 1; ++neighbor_bin_y) {
+    //             for (auto neighbor_bin_x = bin_x - 1; neighbor_bin_x <= bin_x + 1; ++neighbor_bin_x) {
+    //                 if (neighbor_bin_x < 0 || neighbor_bin_x >= num_bins_x || neighbor_bin_y < 0 ||
+    //                     neighbor_bin_y >= num_bins_y) {
+    //                     continue;
+    //                 }
+    //                 auto const neighbor_bin = neighbor_bin_y * num_bins_x + neighbor_bin_x;
+    //                 for (auto i{0U}; i < counts[neighbor_bin]; ++i) {
+    //                     auto const neighbor_pt_index = offsets[neighbor_bin] + i;
+    //                     if (neighbor_pt_index == pt_index /*|| visited_[neighbor_pt_index]*/) {
+    //                         continue;
+    //                     }
+    //                     auto const neighbor_pt = new_points[neighbor_pt_index];
+    //                     if ((square(neighbor_pt[0] - pt[0]) + square(neighbor_pt[1] - pt[1])) < eps_squared_) {
+    //                         neighbors.push_back(neighbor_pt_index);
+    //                     }
+    //                 }
+    //             }
+    //         }
+    //         return neighbors.size();
+    //     };
 
     std::vector<std::uint32_t> num_neighbors(std::size(new_points), 0);
 
-//    #pragma omp parallel for shared(labels_)
+    //    #pragma omp parallel for shared(labels_)
     for (auto i = 0UL; i < std::size(new_points); ++i) {
-//    for (uint64_t i = 0; i < std::size(new_points); ++i) {
+        //    for (uint64_t i = 0; i < std::size(new_points); ++i) {
         auto const& pt = new_points[i];
         auto const bin_x = static_cast<std::int32_t>(std::floor((pt[0] - min[0]) / eps));
         auto const bin_y = static_cast<std::int32_t>(std::floor((pt[1] - min[1]) / eps));
@@ -163,39 +163,39 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
         }
         if (std::size(local_neighbors) > min_samples_) {
             for (auto const n : local_neighbors) {
-                const auto label = static_cast<Label>(i); // % INT_MAX);
-                if (labels_[n] == undefined || labels_[n] == noise){
-                    labels_[n] = label; // i % INT_MAX;
-
-                }
-                else {
-//                    Label label_i
-                    if (i < 10) std::cout << "Value was " << labels_[n] << std::endl;
+                const auto label = static_cast<Label>(i);  // % INT_MAX);
+                if (label < 0) std::cout << "converted label" << label << std::endl;
+                if (labels_[n] == undefined || labels_[n] == noise) {
+                    labels_[n] = label;  // i % INT_MAX;
+                } else {
+                    //                    Label label_i
+                    //                    if (i < 10) std::cout << "Value was " << labels_[n] << std::endl;
                     labels_[n] = std::min(labels_[n], label);
-                    if (i < 10) std::cout << "Got value " << labels_[n] << " from i =  " << i << std::endl;
+                    //                    if (i < 10) std::cout << "Got value " << labels_[n] << " from i =  " << i <<
+                    //                    std::endl;
                 }
             }
         }
     }
 
-//    bool done = false;
-//    while (!done) {
-//        done = true;
-//        for (auto i = 0UL; i < std::size(new_points); ++i) {
-//            if (labels_[i] == undefined) {
-//                labels_[i] = noise;
-//                continue;
-//            }
-//
-//            auto const core_point_index = labels_[i];
-//            auto const new_core_point_index = std::min(core_point_index, labels_[core_point_index]);
-//            if (core_point_index != new_core_point_index) {
-//                labels_[i] = new_core_point_index;
-//                done = false;
-//            }
-//        }
-//    }
-//
+    //    bool done = false;
+    //    while (!done) {
+    //        done = true;
+    //        for (auto i = 0UL; i < std::size(new_points); ++i) {
+    //            if (labels_[i] == undefined) {
+    //                labels_[i] = noise;
+    //                continue;
+    //            }
+    //
+    //            auto const core_point_index = labels_[i];
+    //            auto const new_core_point_index = std::min(core_point_index, labels_[core_point_index]);
+    //            if (core_point_index != new_core_point_index) {
+    //                labels_[i] = new_core_point_index;
+    //                done = false;
+    //            }
+    //        }
+    //    }
+    //
     // Label invalid = noise;
     // labels_.assign(std::size(new_points), invalid);
 
@@ -297,28 +297,30 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
     //     }
     // }
 
-    std::vector <int32_t> labels_bin_vector(std::size(labels_), 0);
-    for (const auto & class_label : labels_){
-        assert (class_label < labels_bin_vector.size());
+    std::vector<int32_t> labels_bin_vector(std::size(labels_), 0);
+    for (const auto& class_label : labels_) {
+        assert(class_label < labels_bin_vector.size());
         labels_bin_vector[class_label] = 1;
     }
-    std::vector <uint32_t> real_class_ids_2_new_class_ids;
+    std::vector<uint32_t> real_class_ids_2_new_class_ids;
     real_class_ids_2_new_class_ids.reserve(labels_bin_vector.size());
-    std::inclusive_scan(labels_bin_vector.begin(), labels_bin_vector.end(), std::back_inserter(real_class_ids_2_new_class_ids));
+    std::inclusive_scan(
+        labels_bin_vector.begin(), labels_bin_vector.end(), std::back_inserter(real_class_ids_2_new_class_ids));
     std::cerr << "scan completed, size: " << real_class_ids_2_new_class_ids.size() << std::endl;
-//    for (const auto class_id : real_class_ids_2_new_class_ids){
-//        std::cerr << class_id << " ";
-//    }
     std::cerr << std::endl;
 
     std::vector<Label> labels(std::size(labels_));
     for (auto i{0U}; i < std::size(labels_); ++i) {
-        if (i < 10) {
-            std::cerr << "Label: " << labels_[i] << ", value to fill: " << real_class_ids_2_new_class_ids[labels_[i]] - 1 << std::endl;
+        if (labels_[i] == undefined || labels[i] == noise) {
+            labels[new_point_to_point_index_map[i]] = noise;
+        } else {
+            std::cout << "Label: " << labels_[i] << std::endl;
+            std::cout << "value to fill: " << real_class_ids_2_new_class_ids[labels_[i]] - 1 << std::endl;
+            labels[new_point_to_point_index_map[i]] = real_class_ids_2_new_class_ids[labels_[i]] - 1;
         }
-        labels[new_point_to_point_index_map[i]] = real_class_ids_2_new_class_ids[labels_[i]] - 1;
     }
 
+    std::cout << "returning labels" << std::endl;
     return labels;
 }
 
