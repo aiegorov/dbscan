@@ -5,6 +5,7 @@
 #include <numeric>
 #include <algorithm>
 #include <cassert>
+#include <climits>
 
 namespace dbscan {
 
@@ -123,6 +124,7 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
 
 //    #pragma omp parallel for shared(labels_)
     for (auto i = 0UL; i < std::size(new_points); ++i) {
+//    for (uint64_t i = 0; i < std::size(new_points); ++i) {
         auto const& pt = new_points[i];
         auto const bin_x = static_cast<std::int32_t>(std::floor((pt[0] - min[0]) / eps));
         auto const bin_y = static_cast<std::int32_t>(std::floor((pt[1] - min[1]) / eps));
@@ -161,11 +163,16 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
         }
         if (std::size(local_neighbors) > min_samples_) {
             for (auto const n : local_neighbors) {
-                if (labels_[n] == noise){
-                    labels_[n] = static_cast<Label>(i);
+                const auto label = static_cast<Label>(i); // % INT_MAX);
+                if (labels_[n] == undefined || labels_[n] == noise){
+                    labels_[n] = label; // i % INT_MAX;
+
                 }
                 else {
-                    labels_[n] = std::min(labels_[n], static_cast<Label>(i));
+//                    Label label_i
+                    if (i < 10) std::cout << "Value was " << labels_[n] << std::endl;
+                    labels_[n] = std::min(labels_[n], label);
+                    if (i < 10) std::cout << "Got value " << labels_[n] << " from i =  " << i << std::endl;
                 }
             }
         }
@@ -297,15 +304,18 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
     }
     std::vector <uint32_t> real_class_ids_2_new_class_ids;
     real_class_ids_2_new_class_ids.reserve(labels_bin_vector.size());
-    std::inclusive_scan(labels_bin_vector.begin(), labels_bin_vector.end(), real_class_ids_2_new_class_ids.begin());
-    std::cerr << "scan completed" << std::endl;
-    for (const auto class_id : real_class_ids_2_new_class_ids){
-        std::cerr << class_id << " ";
-    }
+    std::inclusive_scan(labels_bin_vector.begin(), labels_bin_vector.end(), std::back_inserter(real_class_ids_2_new_class_ids));
+    std::cerr << "scan completed, size: " << real_class_ids_2_new_class_ids.size() << std::endl;
+//    for (const auto class_id : real_class_ids_2_new_class_ids){
+//        std::cerr << class_id << " ";
+//    }
     std::cerr << std::endl;
 
     std::vector<Label> labels(std::size(labels_));
     for (auto i{0U}; i < std::size(labels_); ++i) {
+        if (i < 10) {
+            std::cerr << "Label: " << labels_[i] << ", value to fill: " << real_class_ids_2_new_class_ids[labels_[i]] - 1 << std::endl;
+        }
         labels[new_point_to_point_index_map[i]] = real_class_ids_2_new_class_ids[labels_[i]] - 1;
     }
 
