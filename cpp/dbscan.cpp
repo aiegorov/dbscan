@@ -120,7 +120,7 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
 
     std::vector<std::uint32_t> num_neighbors(std::size(new_points), 0);
 
-    #pragma omp parallel for shared(labels_)
+//    #pragma omp parallel for shared(labels_)
     for (auto i = 0UL; i < std::size(new_points); ++i) {
         auto const& pt = new_points[i];
         auto const bin_x = static_cast<std::int32_t>(std::floor((pt[0] - min[0]) / eps));
