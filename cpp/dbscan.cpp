@@ -162,7 +162,7 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
         if (std::size(local_neighbors) > min_samples_) {
             for (auto const n : local_neighbors) {
                 if (labels_[n] == noise){
-                    labels_[n] = i;
+                    labels_[n] = static_cast<Label>(i);
                 }
                 else {
                     labels_[n] = std::min(labels_[n], static_cast<Label>(i));
