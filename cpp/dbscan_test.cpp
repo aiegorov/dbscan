@@ -47,6 +47,7 @@ TEST_CASE("basic synthetic data test")
     }
     dbscan::Dbscan dbscan{0.8, 10, 200'000};
     ScopedTimer timer{};
+    std::cout << "Running fit_predict" << std::endl;
     auto const labels = dbscan.fit_predict(points);
     std::cout << "took " << (timer.elapsed_ns() / 1000) << " µs" << std::endl;
 
@@ -79,4 +80,5 @@ TEST_CASE("basic synthetic data test")
         }
     }
     CHECK(num_above_threshold >= num_clusters - 10);
+    std::cout << "test completed" << std::endl;
 }

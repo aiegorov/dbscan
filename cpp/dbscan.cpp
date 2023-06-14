@@ -1,5 +1,9 @@
 #include "cpp/dbscan.hpp"
 
+#ifdef NDEBUG
+#undef NDEBUG
+#endif
+
 #include <cmath>
 #include <iostream>
 #include <numeric>
@@ -299,9 +303,15 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
     // }
 
     std::vector<int32_t> labels_bin_vector(std::size(labels_), 0);
-    for (const auto& class_label : labels_) {
-        assert(class_label < labels_bin_vector.size());
-        labels_bin_vector[class_label] = 1;
+    for (const auto class_label : labels_) {
+        if (class_label != undefined && class_label != noise) {
+            labels_bin_vector.at(static_cast<uint32_t>(class_label)) = 1;
+        }
+//        std::cout << "class_label = " << class_label << " size = " << labels_bin_vector.size() << std::endl;
+//        assert(class_label < labels_bin_vector.size());
+//        assert(class_label >= 0);
+//        assert(false);
+
     }
     std::vector<uint32_t> real_class_ids_2_new_class_ids;
     real_class_ids_2_new_class_ids.reserve(labels_bin_vector.size());
@@ -315,13 +325,18 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
         if (labels_[i] == undefined || labels[i] == noise) {
             labels[new_point_to_point_index_map[i]] = noise;
         } else {
-            std::cout << "Label: " << labels_[i] << std::endl;
-            std::cout << "value to fill: " << real_class_ids_2_new_class_ids[labels_[i]] - 1 << std::endl;
+//            std::cout << "Label: " << labels_[i] << std::endl;
+//            std::cout << "value to fill: " << real_class_ids_2_new_class_ids[labels_[i]] - 1 << std::endl;
             labels[new_point_to_point_index_map[i]] = real_class_ids_2_new_class_ids[labels_[i]] - 1;
         }
     }
 
     std::cerr << "returning labels" << std::endl;
+
+    // for debugging purposes
+//    std::vector<Label> labels(std::size(labels_));
+//    labels.assign(points.size(), 0);
+
     return labels;
 }
 
