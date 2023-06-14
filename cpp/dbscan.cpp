@@ -156,7 +156,6 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
             for (auto j{0U}; j < counts[neighbor_bin]; ++j) {
                 auto const neighbor_pt_index = offsets[neighbor_bin] + j;
                 if (neighbor_pt_index == i) {
-                    labels_[i] = static_cast<Label>(i);
                     continue;
                 }
                 auto const neighbor_pt = new_points[neighbor_pt_index];
@@ -168,15 +167,24 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
             }
         }
         if (std::size(local_neighbors) > min_samples_) {
+
+            const auto label_to_set = static_cast<Label>(i);  // % INT_MAX);
+            labels_[i] = std::min(labels_[i], label_to_set);
+//            labels_[i] = static_cast<Label>(i);
+            uint32_t prints_count{0};
+
             for (auto const n : local_neighbors) {
-                const auto label = static_cast<Label>(i);  // % INT_MAX);
-                if (label < 0) std::cout << "converted label" << label << std::endl;
                 if (labels_[n] == undefined || labels_[n] == noise) {
-                    labels_[n] = label;  // i % INT_MAX;
+                    labels_[n] = label_to_set;  // i % INT_MAX;
                 } else {
                     //                    Label label_i
                     //                    if (i < 10) std::cout << "Value was " << labels_[n] << std::endl;
-                    labels_[n] = std::min(labels_[n], label);
+                    const auto to_replace = std::min(labels_[n], label_to_set);
+
+                    if (to_replace != labels_[n] && prints_count++ < 10)
+                    std::cout << "Already existing label " << labels_[n] << " will be replaced with " << to_replace << std::endl;
+//                    prints_count++;
+                    labels_[n] = std::min(labels_[n], label_to_set);
                     //                    if (i < 10) std::cout << "Got value " << labels_[n] << " from i =  " << i <<
                     //                    std::endl;
                 }
@@ -318,7 +326,19 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
     real_class_ids_2_new_class_ids.reserve(labels_bin_vector.size());
     std::inclusive_scan(
         labels_bin_vector.begin(), labels_bin_vector.end(), std::back_inserter(real_class_ids_2_new_class_ids));
-    std::cerr << "scan completed, size: " << real_class_ids_2_new_class_ids.size() << std::endl;
+
+    std::cout << "labels_bin_vector  " << std::endl;
+    for (auto const i : labels_bin_vector){
+        std::cout << i << std::endl;
+    }
+
+    std::cout << "real_class_ids_2_new_class_ids: " << std::endl;
+    for (auto const i : real_class_ids_2_new_class_ids){
+        std::cout << i << std::endl;
+    }
+//    std::cout <<
+//    std::cerr << "scan completed, size: " << real_class_ids_2_new_class_ids.size() << std::endl;
+//    std::cerr << "humber of clusters: " << real_class_ids_2_new_class_ids.back();
     std::cerr << std::endl;
 
     std::vector<Label> labels(std::size(labels_));
