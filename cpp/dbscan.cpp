@@ -303,7 +303,7 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
     // }
 
     std::vector<int32_t> labels_bin_vector(std::size(labels_), 0);
-    for (const auto class_label : labels_) {
+    for (const auto & class_label : labels_) {
         if (class_label != undefined && class_label != noise) {
             labels_bin_vector.at(static_cast<uint32_t>(class_label)) = 1;
         }
