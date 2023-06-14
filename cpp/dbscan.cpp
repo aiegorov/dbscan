@@ -156,6 +156,7 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
             for (auto j{0U}; j < counts[neighbor_bin]; ++j) {
                 auto const neighbor_pt_index = offsets[neighbor_bin] + j;
                 if (neighbor_pt_index == i) {
+                    labels_[i] = static_cast<Label>(i);
                     continue;
                 }
                 auto const neighbor_pt = new_points[neighbor_pt_index];
