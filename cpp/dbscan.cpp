@@ -169,25 +169,39 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
         if (std::size(local_neighbors) > min_samples_) {
 
             const auto label_to_set = static_cast<Label>(i);  // % INT_MAX);
-            labels_[i] = std::min(labels_[i], label_to_set);
-//            labels_[i] = static_cast<Label>(i);
             uint32_t prints_count{0};
 
+            Label current_min{1000000};
             for (auto const n : local_neighbors) {
-                if (labels_[n] == undefined || labels_[n] == noise) {
-                    labels_[n] = label_to_set;  // i % INT_MAX;
-                } else {
-
-                    const auto to_replace = std::min(labels_[n], label_to_set);
-
-                    if (to_replace != labels_[n] && prints_count++ < 10)
-                    std::cout << "Already existing label " << labels_[n] << " will be replaced with " << to_replace << std::endl;
-
-                    labels_[n] =  std::min(labels_[n], label_to_set);
+                if (labels_[n] != undefined || labels_[n] != noise){
+                       current_min = std::min(labels_[n], current_min);
                 }
+            }
+            current_min = std::min(labels_[i], current_min);
+            labels_[i] = current_min;
+
+            for (auto const n : local_neighbors) {
+                labels_[n] = current_min;
+//
+//                if (labels_[n] == undefined || labels_[n] == noise) {
+//                    std::cout << "Used to be " << labels_[n] << ", will be replaced with " << label_to_set << std::endl;
+//                    labels_[n] = current_min;  // i % INT_MAX;
+//                } else {
+//
+//
+//                    const auto to_replace = std::min(labels_[n], label_to_set);
+//
+//                    if (to_replace != labels_[n] && prints_count++ < 10)
+//                    std::cout << "Already existing label " << labels_[n] << " will be replaced with " << to_replace << std::endl;
+//
+//                    labels_[n] =  current_min; //std::min(labels_[n], label_to_set);
+//                }
             }
         }
     }
+
+
+
 
     std::vector<int32_t> labels_bin_vector(std::size(labels_), 0);
     for (const auto & class_label : labels_) {
