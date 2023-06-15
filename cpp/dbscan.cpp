@@ -177,7 +177,7 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
                        current_min = std::min(labels_[n], current_min);
                 }
             }
-            current_min = std::min(labels_[i], current_min);
+            current_min = std::min(label_to_set, current_min);
             labels_[i] = current_min;
 
             for (auto const n : local_neighbors) {
