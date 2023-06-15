@@ -177,139 +177,17 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
                 if (labels_[n] == undefined || labels_[n] == noise) {
                     labels_[n] = label_to_set;  // i % INT_MAX;
                 } else {
-                    //                    Label label_i
-                    //                    if (i < 10) std::cout << "Value was " << labels_[n] << std::endl;
+
                     const auto to_replace = std::min(labels_[n], label_to_set);
 
                     if (to_replace != labels_[n] && prints_count++ < 10)
                     std::cout << "Already existing label " << labels_[n] << " will be replaced with " << to_replace << std::endl;
-//                    prints_count++;
-                    labels_[n] = std::min(labels_[n], label_to_set);
-                    //                    if (i < 10) std::cout << "Got value " << labels_[n] << " from i =  " << i <<
-                    //                    std::endl;
+
+                    labels_[n] =  std::min(labels_[n], label_to_set);
                 }
             }
         }
     }
-
-    //    bool done = false;
-    //    while (!done) {
-    //        done = true;
-    //        for (auto i = 0UL; i < std::size(new_points); ++i) {
-    //            if (labels_[i] == undefined) {
-    //                labels_[i] = noise;
-    //                continue;
-    //            }
-    //
-    //            auto const core_point_index = labels_[i];
-    //            auto const new_core_point_index = std::min(core_point_index, labels_[core_point_index]);
-    //            if (core_point_index != new_core_point_index) {
-    //                labels_[i] = new_core_point_index;
-    //                done = false;
-    //            }
-    //        }
-    //    }
-    //
-    // Label invalid = noise;
-    // labels_.assign(std::size(new_points), invalid);
-
-    // std::vector<int> core_point_indices(std::size(new_points), -1);
-
-    // for (auto i{0}; i < std::size(new_points); ++i) {
-    //     // only consider core points here
-    //     if (num_neighbors[i] < min_samples_) {
-    //         continue;
-    //     }
-
-    //     auto const& pt = new_points[i];
-    //     auto const bin_x = static_cast<std::int32_t>(std::floor((pt[0] - min[0]) / eps));
-    //     auto const bin_y = static_cast<std::int32_t>(std::floor((pt[1] - min[1]) / eps));
-    //     constexpr std::array<int, 9> dx = {-1, +0, +1, -1, +0, +1, -1, +0, +1};
-    //     constexpr std::array<int, 9> dy = {-1, -1, -1, +0, +0, +0, +1, +1, +1};
-    //     for (auto ni = 0; ni < 9; ++ni) {
-    //         auto const nx = bin_x + dx[ni];
-    //         auto const ny = bin_y + dy[ni];
-    //         if (nx < 0 || ny < 0 || nx >= num_bins_x || ny >= num_bins_y) {
-    //             continue;
-    //         }
-    //         auto const neighbor_bin = ny * num_bins_x + nx;
-    //         for (auto j{0U}; j < counts[neighbor_bin]; ++j) {
-    //             auto const neighbor_pt_index = offsets[neighbor_bin] + j;
-    //             auto const neighbor_pt = new_points[neighbor_pt_index];
-    //             if ((square(neighbor_pt[0] - pt[0]) + square(neighbor_pt[1] - pt[1])) < eps_squared_) {
-    //                 core_point_indices[j] = i;
-    //             }
-    //         }
-    //     }
-    // }
-
-    // std::cout << "num_neighbors " << std::endl;
-    // for (auto n : num_neighbors) {
-    //     std::cout << n << " ";
-    // }
-    // std::cout << std::endl;
-
-    // for (auto i{0UL}; i < std::size(new_points); ++i) {
-    //     // skip point if it has already been processed
-    //     if (labels_[i] != undefined) {
-    //         continue;
-    //     }
-
-    //     // find number of neighbors of current point
-    //     if (radius_search(i) < min_samples_) {
-    //         labels_[i] = noise;
-    //         continue;
-    //     }
-
-    //     // std::cout << "cont" << std::endl;
-
-    //     // This point has at least min_samples_ in its eps neighborhood, so it's considered a core point. Time to
-    //     // start a new cluster.
-
-    //     auto const current_cluster_id{cluster_count++};
-    //     labels_[i] = current_cluster_id;
-
-    //     to_visit_.clear();
-    //     // visited_.assign(std::size(new_points), false);
-
-    //     for (auto const& n : neighbors) {
-    //         if (!visited_[n]) {
-    //             to_visit_.push_back(n);
-    //         }
-    //         visited_[n] = true;
-    //     }
-
-    //     for (auto j{0UL}; j < std::size(to_visit_); ++j) {
-    //         auto const neighbor{to_visit_[j]};
-
-    //         if (labels_[neighbor] == noise) {
-    //             // This was considered as a seed before, but didn't have enough points in its eps neighborhood.
-    //             // Since it's in the current seed's neighborhood, we label it as belonging to this label, but it
-    //             // won't be used as a seed again.
-    //             labels_[neighbor] = current_cluster_id;
-    //             continue;
-    //         }
-
-    //         if (labels_[neighbor] != undefined) {
-    //             // Point belongs already to a cluster: skip it.
-    //             continue;
-    //         }
-
-    //         // assign the current cluster's label to the neighbor
-    //         labels_[neighbor] = current_cluster_id;
-
-    //         // and query its neighborhood to see if it also to be considered as a core point
-    //         if (radius_search(neighbor) < min_samples_) {
-    //             continue;
-    //         }
-    //         for (auto const& n : neighbors) {
-    //             if (!visited_[n]) {
-    //                 to_visit_.push_back(n);
-    //             }
-    //             visited_[n] = true;
-    //         }
-    //     }
-    // }
 
     std::vector<int32_t> labels_bin_vector(std::size(labels_), 0);
     for (const auto & class_label : labels_) {
