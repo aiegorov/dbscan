@@ -172,30 +172,28 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
             uint32_t prints_count{0};
 
             Label current_min{1000000};
+            current_min = std::min(label_to_set, current_min);
             for (auto const n : local_neighbors) {
-                if (labels_[n] != undefined || labels_[n] != noise){
+                if (labels_[n] != undefined && labels_[n] != noise){
                        current_min = std::min(labels_[n], current_min);
                 }
             }
-            current_min = std::min(label_to_set, current_min);
             labels_[i] = current_min;
 
             for (auto const n : local_neighbors) {
-                labels_[n] = current_min;
-//
-//                if (labels_[n] == undefined || labels_[n] == noise) {
-//                    std::cout << "Used to be " << labels_[n] << ", will be replaced with " << label_to_set << std::endl;
-//                    labels_[n] = current_min;  // i % INT_MAX;
-//                } else {
-//
-//
-//                    const auto to_replace = std::min(labels_[n], label_to_set);
-//
-//                    if (to_replace != labels_[n] && prints_count++ < 10)
-//                    std::cout << "Already existing label " << labels_[n] << " will be replaced with " << to_replace << std::endl;
-//
-//                    labels_[n] =  current_min; //std::min(labels_[n], label_to_set);
-//                }
+//                labels_[n] = current_min;
+
+                if (labels_[n] == undefined || labels_[n] == noise) {
+                    std::cout << "Used to be " << labels_[n] << ", will be replaced with " << label_to_set << std::endl;
+                    labels_[n] = current_min;  // i % INT_MAX;
+                } else {
+                    const auto to_replace = std::min(labels_[n], label_to_set);
+
+                    if (to_replace != labels_[n] && prints_count++ < 10)
+                    std::cout << "Already existing label " << labels_[n] << " will be replaced with " << to_replace << std::endl;
+
+                    labels_[n] =  current_min; //std::min(labels_[n], label_to_set);
+                }
             }
         }
     }
