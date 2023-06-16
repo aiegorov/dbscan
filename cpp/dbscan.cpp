@@ -127,6 +127,13 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
 
     std::vector<std::uint32_t> num_neighbors(std::size(new_points), 0);
 
+    const auto n_points{points.size()};
+    std::vector<std::vector<uint32_t, n_points>> labels_bin_map(points.size());
+
+    for (auto i = 0UL; i < labels_bin_map.size(); ++i){
+        labels_bin_map.at(i).assign(points.size(), 0);
+    }
+
     //    #pragma omp parallel for shared(labels_)
     for (auto i = 0UL; i < std::size(new_points); ++i) {
         //    for (uint64_t i = 0; i < std::size(new_points); ++i) {
@@ -171,35 +178,56 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
             const auto label_to_set = static_cast<Label>(i);  // % INT_MAX);
             uint32_t prints_count{0};
 
-            Label current_min{1000000};
-            current_min = std::min(label_to_set, current_min);
+//            Label current_min{1000000};
+//            current_min = std::min(label_to_set, current_min);
+//            for (auto const n : local_neighbors) {
+//                if (labels_[n] != undefined && labels_[n] != noise){
+//                       current_min = std::min(labels_[n], current_min);
+//                }
+//            }
+//            labels_[i] = current_min;
+
+            labels_bin_map.at(i).at(i) = 1;
             for (auto const n : local_neighbors) {
-                if (labels_[n] != undefined && labels_[n] != noise){
-                       current_min = std::min(labels_[n], current_min);
-                }
-            }
-            labels_[i] = current_min;
 
-            for (auto const n : local_neighbors) {
-//                labels_[n] = current_min;
-
-                if (labels_[n] == undefined || labels_[n] == noise) {
-                    std::cout << "Used to be " << labels_[n] << ", will be replaced with " << label_to_set << std::endl;
-                    labels_[n] = current_min;  // i % INT_MAX;
-                } else {
-                    const auto to_replace = std::min(labels_[n], label_to_set);
-
-                    if (to_replace != labels_[n] && prints_count++ < 10)
-                    std::cout << "Already existing label " << labels_[n] << " will be replaced with " << to_replace << std::endl;
-
-                    labels_[n] =  current_min; //std::min(labels_[n], label_to_set);
-                }
+                labels_bin_map.at(i).at(j) = 1;
+//
+//                if (labels_[n] == undefined || labels_[n] == noise) {
+//                    std::cout << "Used to be " << labels_[n] << ", will be replaced with " << label_to_set << std::endl;
+//                    labels_[n] = current_min;  // i % INT_MAX;
+//                } else {
+//                    const auto to_replace = std::min(labels_[n], label_to_set);
+//
+//                    if (to_replace != labels_[n] && prints_count++ < 10)
+//                    std::cout << "Already existing label " << labels_[n] << " will be replaced with " << to_replace << std::endl;
+//
+//                    labels_[n] =  current_min; //std::min(labels_[n], label_to_set);
+//                }
             }
         }
     }
 
+        // propagating the class minimum
+
+        // calculating the minimum for all of them
+        // TODO can be moved back
+
+        std::vector<Label> mins(new_points.size());
+
+        // pragma ...
+        for (auto i = OUL; i < labels_bin_map.size(); ++i){
+            for (auto j = OUL; j < labels_bin_map.size(); ++j){
+                mins = *std::min_element(labels_bin_map)
+            }
+        }
 
 
+//    for (auto i = 0UL; i < labels_bin_map.size(); ++i){
+//        const auto & labels_bin_vector{labels_bin_map.at(i)};
+//        std::vector<uint32_t> real_class_ids_2_new_class_ids;
+//        real_class_ids_2_new_class_ids.reserve(labels_bin_vector.size());
+//        std::inclusive_scan(labels_bin_vector.begin(), labels_bin_vector.end(), std::back_inserter(real_class_ids_2_new_class_ids));
+//    }
 
     std::vector<int32_t> labels_bin_vector(std::size(labels_), 0);
     for (const auto & class_label : labels_) {
@@ -217,7 +245,7 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
     std::inclusive_scan(
         labels_bin_vector.begin(), labels_bin_vector.end(), std::back_inserter(real_class_ids_2_new_class_ids));
 
-    std::cout << "labels_bin_vector  " << std::endl;
+          std::cout << "labels_bin_vector  " << std::endl;
     for (auto const i : labels_bin_vector){
         std::cout << i << std::endl;
     }
