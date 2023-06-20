@@ -128,14 +128,9 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
     std::vector<std::uint32_t> num_neighbors(std::size(new_points), 0);
 
     const auto n_points{points.size()};
-    std::vector<std::vector<uint32_t, n_points>> labels_bin_map(points.size());
 
-    for (auto i = 0UL; i < labels_bin_map.size(); ++i){
-        labels_bin_map.at(i).assign(points.size(), 0);
-    }
-
-    std::vector<std::array<std::int32_t>> core_points_ids;
-    core_points_ids(new_points.size(), {-1, -1});
+    std::vector<std::array<std::int32_t, 2>> core_points_ids;
+    core_points_ids.assign(new_points.size(), {-1, -1});
 
     //    #pragma omp parallel for shared(labels_)
     for (auto i = 0UL; i < std::size(new_points); ++i) {
@@ -177,25 +172,25 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
             }
         }
         if (std::size(local_neighbors) > min_samples_) {
+//            const auto label_to_set = static_cast<Label>(i);  // % INT_MAX);
 
-            const auto label_to_set = static_cast<Label>(i);  // % INT_MAX);
-            uint32_t prints_count{0};
-
-            for (auto cp_id{0U}; cp_id < core_points_ids.size(); ++cp_id){
-                 if (core_points_ids.at(cp_id) == -1){
-                     core_points_ids.at(j).at(cp_id) = i;
-                     break;
-                 }
-
+            for (auto const n : local_neighbors) {
+                for (auto cp_id{0U}; cp_id < core_points_ids.at(n).size(); ++cp_id) {
+                    if (core_points_ids.at(n).at(cp_id) == -1) {
+                        core_points_ids.at(n).at(cp_id) = i;
+                        break;
+                    }
+                }
             }
         }
     }
 
-    for (auto i{0UL}; i < new_points.size(); ++i){
-        if (core_points_ids.at(i).at(0) >= 0){
+
+    for (auto i{0UL}; i < new_points.size(); ++i) {
+        if (core_points_ids.at(i).at(0) >= 0) {
             labels_.at(i) = i;
         } else {
-            labels.at(i) = noise;
+            labels_.at(i) = noise;
         }
     }
 
@@ -205,15 +200,14 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
     while (!converged) {
         num_iterations++;
         converged = true;
-        for (auto i{0UL}; i < new_points.size(); ++i){
-            if (labels_.at(i) ==-1) continue;
-            for (uint32_t current_core_idx{0}; current_core_idx < core_points_ids.at(i).size(); ++current_core_idx){
+        for (auto i{0UL}; i < new_points.size(); ++i) {
+            if (labels_.at(i) == -1) continue;
+            for (const auto current_core_idx : core_points_ids.at(i)){
                 if (current_core_idx == -1) continue;
-                if (labels_.at(i) < labels_.at(current_core_idx)){
+                if (labels_.at(i) < labels_.at(current_core_idx)) {
                     labels_.at(current_core_idx) = labels_.at(i);
                     converged = false;
-                }
-                else if (labels_.at(i) > labels_.at(current_core_idx)) {
+                } else if (labels_.at(i) > labels_.at(current_core_idx)) {
                     labels_.at(i) = labels_.at(current_core_idx);
                     converged = false;
                 }
@@ -225,18 +219,18 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
 
     // calculating the minimum for all of them
     // TODO can be moved back
-
-    std::vector<Label> mins(new_points.size());
-
-    // pragma ...
-    for (auto i = OUL; i < labels_bin_map.size(); ++i){
-        for (auto j = OUL; j < labels_bin_map.size(); ++j){
-            mins = *std::min_element(labels_bin_map);
-        }
-    }
+    //
+    //    std::vector<Label> mins(new_points.size());
+    //
+    //    // pragma ...
+    //    for (auto i = OUL; i < labels_bin_map.size(); ++i){
+    //        for (auto j = OUL; j < labels_bin_map.size(); ++j){
+    //            mins = *std::min_element(labels_bin_map);
+    //        }
+    //    }
 
     std::vector<int32_t> labels_bin_vector(std::size(labels_), 0);
-    for (const auto & class_label : labels_) {
+    for (const auto& class_label : labels_) {
         if (class_label != undefined && class_label != noise) {
             labels_bin_vector.at(static_cast<uint32_t>(class_label)) = 1;
         }
@@ -246,13 +240,13 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
     std::inclusive_scan(
         labels_bin_vector.begin(), labels_bin_vector.end(), std::back_inserter(real_class_ids_2_new_class_ids));
 
-          std::cout << "labels_bin_vector  " << std::endl;
-    for (auto const i : labels_bin_vector){
+    std::cout << "labels_bin_vector  " << std::endl;
+    for (auto const i : labels_bin_vector) {
         std::cout << i << std::endl;
     }
 
     std::cout << "real_class_ids_2_new_class_ids: " << std::endl;
-    for (auto const i : real_class_ids_2_new_class_ids){
+    for (auto const i : real_class_ids_2_new_class_ids) {
         std::cout << i << std::endl;
     }
     std::cerr << std::endl;
