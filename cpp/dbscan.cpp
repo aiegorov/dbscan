@@ -155,6 +155,7 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
                 }
             }
         }
+        labels_.at(i) = static_cast<Label>(i);
     }
     const auto now_2 = std::chrono::system_clock::now();
     std::cerr << "Block in question took " << std::chrono::duration_cast<std::chrono::milliseconds>(now_2 - now_1).count() << " ms" << std::endl;
@@ -162,7 +163,7 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
     const auto now_3 = std::chrono::system_clock::now();
     for (auto i{0UL}; i < new_points.size(); ++i) {
         if (core_points_ids.at(i).at(0) >= 0) {
-            labels_.at(i) = i;
+            labels_.at(i) = static_cast<Label>(i);
         } else {
             labels_.at(i) = noise;
         }
