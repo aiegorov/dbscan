@@ -172,7 +172,6 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
             }
         }
         if (std::size(local_neighbors) > min_samples_) {
-//            const auto label_to_set = static_cast<Label>(i);  // % INT_MAX);
 
             for (auto const n : local_neighbors) {
                 for (auto cp_id{0U}; cp_id < core_points_ids.at(n).size(); ++cp_id) {
@@ -213,6 +212,7 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
             }
         }
     }
+    std::cerr << "converged in " << num_iterations << " iterations" << std::endl;
 
     // propagating the class minimum
 
