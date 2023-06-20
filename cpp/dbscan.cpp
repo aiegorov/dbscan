@@ -5,6 +5,7 @@
 #endif
 
 #include <cmath>
+#include <atomic>
 #include <iostream>
 #include <numeric>
 #include <algorithm>
@@ -129,7 +130,7 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
 
     const auto n_points{points.size()};
 
-    std::vector<std::array<std::int32_t, 2>> core_points_ids;
+    std::vector<std::array<std::atomic<std::int32_t>, 2>> core_points_ids;
     core_points_ids.assign(new_points.size(), {-1, -1});
 
     #pragma omp parallel for //shared(labels_)
@@ -200,7 +201,9 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
         converged = true;
         for (auto i{0UL}; i < new_points.size(); ++i) {
             if (labels_.at(i) == -1) continue;
-            for (const auto current_core_idx : core_points_ids.at(i)){
+//            for (const auto current_core_idx : core_points_ids.at(i)){
+            for (auto k{0UL}; k < 2; ++k){
+                auto current_core_idx{core_points_ids.at(i).at(k)};
                 if (current_core_idx == -1) continue;
                 if (labels_.at(i) < labels_.at(current_core_idx)) {
                     labels_.at(current_core_idx) = labels_.at(i);
