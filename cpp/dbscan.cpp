@@ -29,6 +29,9 @@ Dbscan::Dbscan(float const eps, std::uint32_t const min_samples, std::size_t con
 auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vector<Dbscan::Label>
 {
     std::cerr << "Got points" << std::endl;
+
+    const auto now_0_0 = std::chrono::system_clock::now();
+
     labels_.assign(std::size(points), undefined);
     visited_.assign(std::size(points), false);
 
@@ -106,7 +109,11 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
     std::vector<std::array<std::int32_t, 2>> core_points_ids;
     core_points_ids.assign(new_points.size(), {-1, -1});
 
+    const auto now_0 = std::chrono::system_clock::now();
+    std::cerr << "Sorting/preprocessing took  " << std::chrono::duration_cast<std::chrono::milliseconds>(now_0 - now_0_0).count() << " ms" << std::endl;
+
     const auto now_1 = std::chrono::system_clock::now();
+
     #pragma omp parallel for
     for (auto i = 0UL; i < std::size(new_points); ++i) {
         auto const& pt = new_points[i];
