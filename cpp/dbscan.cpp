@@ -122,9 +122,15 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
 
         std::vector<std::uint32_t> local_neighbors;
 
-        constexpr std::array<int, 9> dx = {-1, +0, +1, -1, +0, +1, -1, +0, +1};
-        constexpr std::array<int, 9> dy = {-1, -1, -1, +0, +0, +0, +1, +1, +1};
-        for (auto ni = 0; ni < 9; ++ni) {
+        constexpr std::array<int, 8> dx = {-1, +0, +1, -1, +0, +1, -1, +0};
+        constexpr std::array<int, 8> dy = {-1, -1, -1, +0, +0, +0, +1, +1};
+//
+//        constexpr std::array<int, 5> dx = {0, 0, -1, -1, -1};
+//        constexpr std::array<int, 5> dy = {0, -1, -1, 0, 1};
+
+//        constexpr std::array<int, 4> dx = {-1, -1, 0, 1};
+//        constexpr std::array<int, 4> dy = {0, -1, -1, -1};
+        for (auto ni = 0; ni < dx.size(); ++ni) {
             auto const nx = bin_x + dx[ni];
             auto const ny = bin_y + dy[ni];
             if (nx < 0 || ny < 0 || nx >= num_bins_x || ny >= num_bins_y) {
