@@ -5,6 +5,7 @@
 #endif
 
 #include <cmath>
+#include <chrono>
 #include <iostream>
 #include <numeric>
 #include <algorithm>
@@ -133,6 +134,7 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
     core_points_ids.assign(new_points.size(), {-1, -1});
 
 //    #pragma omp parallel for //shared(labels_)
+    const auto now_1 = std::chrono::system_clock::now();
     for (auto i = 0UL; i < std::size(new_points); ++i) {
         //    for (uint64_t i = 0; i < std::size(new_points); ++i) {
         auto const& pt = new_points[i];
@@ -187,6 +189,8 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
             }
         }
     }
+    const auto now_2 = std::chrono::system_clock::now();
+    std::cerr << "Block in question took " << std::chrono::duration_cast<std::chrono::milliseconds>(now_2 - now_1).count() << " ms" << std::endl;
 
     for (auto i{0UL}; i < new_points.size(); ++i) {
         if (core_points_ids.at(i).at(0) >= 0) {
