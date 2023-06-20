@@ -99,33 +99,6 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
         return v * v;
     };
 
-    //     auto radius_search = [&](std::uint32_t pt_index) -> std::uint32_t {
-    //         neighbors.clear();
-    //         auto const& pt = new_points[pt_index];
-    //         auto const bin_x = static_cast<std::int32_t>(std::floor((pt[0] - min[0]) / eps));
-    //         auto const bin_y = static_cast<std::int32_t>(std::floor((pt[1] - min[1]) / eps));
-    //         for (auto neighbor_bin_y = bin_y - 1; neighbor_bin_y <= bin_y + 1; ++neighbor_bin_y) {
-    //             for (auto neighbor_bin_x = bin_x - 1; neighbor_bin_x <= bin_x + 1; ++neighbor_bin_x) {
-    //                 if (neighbor_bin_x < 0 || neighbor_bin_x >= num_bins_x || neighbor_bin_y < 0 ||
-    //                     neighbor_bin_y >= num_bins_y) {
-    //                     continue;
-    //                 }
-    //                 auto const neighbor_bin = neighbor_bin_y * num_bins_x + neighbor_bin_x;
-    //                 for (auto i{0U}; i < counts[neighbor_bin]; ++i) {
-    //                     auto const neighbor_pt_index = offsets[neighbor_bin] + i;
-    //                     if (neighbor_pt_index == pt_index /*|| visited_[neighbor_pt_index]*/) {
-    //                         continue;
-    //                     }
-    //                     auto const neighbor_pt = new_points[neighbor_pt_index];
-    //                     if ((square(neighbor_pt[0] - pt[0]) + square(neighbor_pt[1] - pt[1])) < eps_squared_) {
-    //                         neighbors.push_back(neighbor_pt_index);
-    //                     }
-    //                 }
-    //             }
-    //         }
-    //         return neighbors.size();
-    //     };
-
     std::vector<std::uint32_t> num_neighbors(std::size(new_points), 0);
 
     const auto n_points{points.size()};
@@ -134,26 +107,13 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
     core_points_ids.assign(new_points.size(), {-1, -1});
 
     const auto now_1 = std::chrono::system_clock::now();
-    #pragma omp parallel for //shared(labels_)
+    #pragma omp parallel for
     for (auto i = 0UL; i < std::size(new_points); ++i) {
-        //    for (uint64_t i = 0; i < std::size(new_points); ++i) {
         auto const& pt = new_points[i];
         auto const bin_x = static_cast<std::int32_t>(std::floor((pt[0] - min[0]) / eps));
         auto const bin_y = static_cast<std::int32_t>(std::floor((pt[1] - min[1]) / eps));
-        // constexpr std::array<int, 5> dx = {0, 0, -1, -1, -1};
-        // constexpr std::array<int, 5> dy = {0, -1, -1, 0, 1};
-        // for (auto ni = 0; ni < 4; ++ni) {
-        //     auto const nx = bin_x + dx[ni];
-        //     auto const ny = bin_y + dy[ni];
-        //     if (nx < 0 || ny < 0 || ny >= num_bins_y) {
-        //         continue;
-        //     }
-
-//        auto& local_neighbors = neighbors[i % 32];
-//        local_neighbors.clear();
 
         std::vector<std::uint32_t> local_neighbors;
-//        local_neighbors.reserve()
 
         constexpr std::array<int, 9> dx = {-1, +0, +1, -1, +0, +1, -1, +0, +1};
         constexpr std::array<int, 9> dy = {-1, -1, -1, +0, +0, +0, +1, +1, +1};
@@ -239,17 +199,6 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
 
     const auto now_6 = std::chrono::system_clock::now();
     std::cerr << "The part with inclusive scan took " << std::chrono::duration_cast<std::chrono::milliseconds>(now_6 - now_5).count() << " ms" << std::endl;
-
-//    std::cout << "labels_bin_vector  " << std::endl;
-//    for (auto const i : labels_bin_vector) {
-//        std::cout << i << std::endl;
-//    }
-//
-//    std::cout << "real_class_ids_2_new_class_ids: " << std::endl;
-//    for (auto const i : real_class_ids_2_new_class_ids) {
-//        std::cout << i << std::endl;
-//    }
-//    std::cerr << std::endl;
 
     std::vector<Label> labels(std::size(labels_));
     for (auto i{0U}; i < std::size(labels_); ++i) {
