@@ -122,8 +122,11 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
 
         std::vector<std::uint32_t> local_neighbors;
 
-        constexpr std::array<int, 7> dx = {-1, +0, +1, -1, +0, +1, -1};
-        constexpr std::array<int, 7> dy = {-1, -1, -1, +0, +0, +0, +1};
+//        constexpr std::array<int, 7> dx = {-1, +0, +1, -1, +0, +1, -1};
+//        constexpr std::array<int, 7> dy = {-1, -1, -1, +0, +0, +0, +1};
+
+        constexpr std::array<int, 8> dx = {-1, +0, +1, -1, +1, -1, +0, +1};
+        constexpr std::array<int, 8> dy = {-1, -1, -1, +0, +0, +1, +1, +1};
 //
 //        constexpr std::array<int, 5> dx = {0, 0, -1, -1, -1};
 //        constexpr std::array<int, 5> dy = {0, -1, -1, 0, 1};
