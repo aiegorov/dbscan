@@ -192,6 +192,7 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
     const auto now_2 = std::chrono::system_clock::now();
     std::cerr << "Block in question took " << std::chrono::duration_cast<std::chrono::milliseconds>(now_2 - now_1).count() << " ms" << std::endl;
 
+    const auto now_3 = std::chrono::system_clock::now();
     for (auto i{0UL}; i < new_points.size(); ++i) {
         if (core_points_ids.at(i).at(0) >= 0) {
             labels_.at(i) = i;
@@ -221,21 +222,10 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
         }
     }
     std::cerr << "converged in " << num_iterations << " iterations" << std::endl;
+    const auto now_4 = std::chrono::system_clock::now();
+    std::cerr << "Convergence took " << std::chrono::duration_cast<std::chrono::milliseconds>(now_4 - now_3).count() << " ms" << std::endl;
 
-    // propagating the class minimum
-
-    // calculating the minimum for all of them
-    // TODO can be moved back
-    //
-    //    std::vector<Label> mins(new_points.size());
-    //
-    //    // pragma ...
-    //    for (auto i = OUL; i < labels_bin_map.size(); ++i){
-    //        for (auto j = OUL; j < labels_bin_map.size(); ++j){
-    //            mins = *std::min_element(labels_bin_map);
-    //        }
-    //    }
-
+    const auto now_5 = std::chrono::system_clock::now();
     std::vector<int32_t> labels_bin_vector(std::size(labels_), 0);
     for (const auto& class_label : labels_) {
         if (class_label != undefined && class_label != noise) {
@@ -266,6 +256,9 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
             labels[new_point_to_point_index_map[i]] = real_class_ids_2_new_class_ids[labels_[i]] - 1;
         }
     }
+
+    const auto now_6 = std::chrono::system_clock::now();
+    std::cerr << "The rest took " << std::chrono::duration_cast<std::chrono::milliseconds>(now_6 - now_5).count() << " ms" << std::endl;
 
     std::cerr << "returning labels" << std::endl;
 
