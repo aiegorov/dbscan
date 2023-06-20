@@ -237,16 +237,19 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
     std::inclusive_scan(
         labels_bin_vector.begin(), labels_bin_vector.end(), std::back_inserter(real_class_ids_2_new_class_ids));
 
-    std::cout << "labels_bin_vector  " << std::endl;
-    for (auto const i : labels_bin_vector) {
-        std::cout << i << std::endl;
-    }
+    const auto now_6 = std::chrono::system_clock::now();
+    std::cerr << "The part with inclusive scan took " << std::chrono::duration_cast<std::chrono::milliseconds>(now_6 - now_5).count() << " ms" << std::endl;
 
-    std::cout << "real_class_ids_2_new_class_ids: " << std::endl;
-    for (auto const i : real_class_ids_2_new_class_ids) {
-        std::cout << i << std::endl;
-    }
-    std::cerr << std::endl;
+//    std::cout << "labels_bin_vector  " << std::endl;
+//    for (auto const i : labels_bin_vector) {
+//        std::cout << i << std::endl;
+//    }
+//
+//    std::cout << "real_class_ids_2_new_class_ids: " << std::endl;
+//    for (auto const i : real_class_ids_2_new_class_ids) {
+//        std::cout << i << std::endl;
+//    }
+//    std::cerr << std::endl;
 
     std::vector<Label> labels(std::size(labels_));
     for (auto i{0U}; i < std::size(labels_); ++i) {
@@ -257,8 +260,8 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
         }
     }
 
-    const auto now_6 = std::chrono::system_clock::now();
-    std::cerr << "The rest took " << std::chrono::duration_cast<std::chrono::milliseconds>(now_6 - now_5).count() << " ms" << std::endl;
+    const auto now_7 = std::chrono::system_clock::now();
+    std::cerr << "The rest took " << std::chrono::duration_cast<std::chrono::milliseconds>(now_7 - now_6).count() << " ms" << std::endl;
 
     std::cerr << "returning labels" << std::endl;
 
