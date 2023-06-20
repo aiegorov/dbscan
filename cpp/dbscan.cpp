@@ -132,7 +132,7 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
     std::vector<std::array<std::int32_t, 2>> core_points_ids;
     core_points_ids.assign(new_points.size(), {-1, -1});
 
-    #pragma omp parallel for //shared(labels_)
+//    #pragma omp parallel for //shared(labels_)
     for (auto i = 0UL; i < std::size(new_points); ++i) {
         //    for (uint64_t i = 0; i < std::size(new_points); ++i) {
         auto const& pt = new_points[i];
