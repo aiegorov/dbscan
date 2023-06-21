@@ -17,6 +17,7 @@ namespace dbscan {
 Dbscan::Dbscan(float const eps, std::uint32_t const min_samples, std::size_t const num_points_hint)
     : eps_squared_{eps * eps}
     , min_samples_{min_samples}
+    , max_durations_window_{1000}
 {
     if (num_points_hint > 0) {
         labels_.reserve(num_points_hint);
@@ -24,6 +25,14 @@ Dbscan::Dbscan(float const eps, std::uint32_t const min_samples, std::size_t con
         visited_.reserve(num_points_hint);
         to_visit_.reserve(num_points_hint);
     }
+}
+
+void Dbscan::update_durations_(std::uint32_t new_duration){
+
+    if (durations_.size() >= max_durations_window_ - 1){
+        durations_.pop_front();
+    }
+    durations_.push_back(new_duration);
 }
 
 auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vector<Dbscan::Label>
@@ -150,7 +159,11 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
         labels_.at(i) = static_cast<Label>(i);
     }
     const auto now_2 = std::chrono::system_clock::now();
-    std::cerr << "Block in question took " << std::chrono::duration_cast<std::chrono::milliseconds>(now_2 - now_1).count() << " ms" << std::endl;
+    const std::uint32_t duration = std::chrono::duration_cast<std::chrono::milliseconds>(now_2 - now_1).count();
+    std::cerr << "Block in question took " << duration << " ms" << std::endl;
+    update_durations_(duration);
+    std::cerr << "Mean duration is " << std::accumulate(durations_.begin(), durations_.end(), 0) / durations_.size() << " ms" << std::endl;
+
 
     for (auto i{0UL}; i < new_points.size(); ++i) {
         if (core_points_ids.at(i).at(0) >= 0) {

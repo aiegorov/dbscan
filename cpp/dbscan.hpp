@@ -3,6 +3,7 @@
 #include <array>
 #include <cstdint>
 #include <vector>
+#include <deque>
 
 namespace dbscan {
 
@@ -23,11 +24,16 @@ private:
     float eps_squared_;
     std::uint32_t min_samples_;
 
+    void update_durations_(std::uint32_t new_duration);
+
     // scratch memory we only have as members to avoid allocations for each call to `fit_predict()`
     std::vector<Label> labels_;
     std::vector<std::pair<std::uint32_t, float>> neighbors_;
     std::vector<bool> visited_;
     std::vector<std::uint32_t> to_visit_;
+
+    std::deque<std::uint32_t> durations_;
+    std::uint32_t max_durations_window_;
 };
 
 }  // namespace dbscan
