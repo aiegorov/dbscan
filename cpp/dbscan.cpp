@@ -30,8 +30,6 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
 {
     std::cerr << "Got points" << std::endl;
 
-    const auto now_0_0 = std::chrono::system_clock::now();
-
     labels_.assign(std::size(points), undefined);
     visited_.assign(std::size(points), false);
 
@@ -109,9 +107,6 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
     std::vector<std::array<std::int32_t, 2>> core_points_ids;
     core_points_ids.assign(new_points.size(), {-1, -1});
 
-    const auto now_0 = std::chrono::system_clock::now();
-    std::cerr << "Sorting/preprocessing took  " << std::chrono::duration_cast<std::chrono::milliseconds>(now_0 - now_0_0).count() << " ms" << std::endl;
-
     const auto now_1 = std::chrono::system_clock::now();
 
     #pragma omp parallel for
@@ -160,7 +155,6 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
     const auto now_2 = std::chrono::system_clock::now();
     std::cerr << "Block in question took " << std::chrono::duration_cast<std::chrono::milliseconds>(now_2 - now_1).count() << " ms" << std::endl;
 
-    const auto now_3 = std::chrono::system_clock::now();
     for (auto i{0UL}; i < new_points.size(); ++i) {
         if (core_points_ids.at(i).at(0) >= 0) {
             labels_.at(i) = static_cast<Label>(i);
@@ -190,10 +184,7 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
         }
     }
     std::cerr << "converged in " << num_iterations << " iterations" << std::endl;
-    const auto now_4 = std::chrono::system_clock::now();
-    std::cerr << "Convergence took " << std::chrono::duration_cast<std::chrono::milliseconds>(now_4 - now_3).count() << " ms" << std::endl;
 
-    const auto now_5 = std::chrono::system_clock::now();
     std::vector<int32_t> labels_bin_vector(std::size(labels_), 0);
     for (const auto& class_label : labels_) {
         if (class_label != undefined && class_label != noise) {
@@ -205,9 +196,6 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
     std::inclusive_scan(
         labels_bin_vector.begin(), labels_bin_vector.end(), std::back_inserter(real_class_ids_2_new_class_ids));
 
-    const auto now_6 = std::chrono::system_clock::now();
-    std::cerr << "The part with inclusive scan took " << std::chrono::duration_cast<std::chrono::milliseconds>(now_6 - now_5).count() << " ms" << std::endl;
-
     std::vector<Label> labels(std::size(labels_));
     for (auto i{0U}; i < std::size(labels_); ++i) {
         if (labels_[i] == undefined || labels[i] == noise) {
@@ -216,9 +204,6 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
             labels[new_point_to_point_index_map[i]] = real_class_ids_2_new_class_ids[labels_[i]] - 1;
         }
     }
-
-    const auto now_7 = std::chrono::system_clock::now();
-    std::cerr << "The rest took " << std::chrono::duration_cast<std::chrono::milliseconds>(now_7 - now_6).count() << " ms" << std::endl;
 
     std::cerr << "returning labels" << std::endl;
 
