@@ -104,8 +104,8 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
 
     const auto n_points{points.size()};
 
-    std::vector<std::array<std::int32_t, 2>> core_points_ids;
-    core_points_ids.assign(new_points.size(), {-1, -1});
+    std::vector<std::array<std::int32_t, 3>> core_points_ids;
+    core_points_ids.assign(new_points.size(), {-1, -1, -1});
 
     const auto now_1 = std::chrono::system_clock::now();
 
@@ -133,14 +133,11 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
                 }
                 auto const neighbor_pt = new_points[neighbor_pt_index];
                 if ((square(neighbor_pt[0] - pt[0]) + square(neighbor_pt[1] - pt[1])) < eps_squared_) {
-                    // num_neighbors[neighbor_pt_index] += 1;
-                    // num_neighbors[i] += 1;
                     local_neighbors.push_back(neighbor_pt_index);
                 }
             }
         }
         if (std::size(local_neighbors) > min_samples_) {
-
             for (auto const n : local_neighbors) {
                 for (auto cp_id{0U}; cp_id < core_points_ids.at(n).size(); ++cp_id) {
                     if (core_points_ids.at(n).at(cp_id) == -1) {
