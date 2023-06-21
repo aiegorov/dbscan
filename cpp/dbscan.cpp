@@ -140,7 +140,7 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
                 if (neighbor_pt_index == i) {
                     continue;
                 }
-                auto const neighbor_pt = new_points[neighbor_pt_index];
+                auto const & neighbor_pt = new_points[neighbor_pt_index];
                 if ((square(neighbor_pt[0] - pt[0]) + square(neighbor_pt[1] - pt[1])) < eps_squared_) {
                     local_neighbors.push_back(neighbor_pt_index);
                 }
@@ -156,14 +156,13 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
                 }
             }
         }
-        labels_.at(i) = static_cast<Label>(i);
+//        labels_.at(i) = static_cast<Label>(i);
     }
     const auto now_2 = std::chrono::system_clock::now();
     const std::uint32_t duration = std::chrono::duration_cast<std::chrono::milliseconds>(now_2 - now_1).count();
     std::cerr << "Block in question took " << duration << " ms" << std::endl;
     update_durations_(duration);
     std::cerr << "Mean duration is " << std::accumulate(durations_.begin(), durations_.end(), 0) / durations_.size() << " ms" << std::endl;
-
 
     for (auto i{0UL}; i < new_points.size(); ++i) {
         if (core_points_ids.at(i).at(0) >= 0) {
