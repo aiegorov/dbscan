@@ -11,6 +11,7 @@
 #include <algorithm>
 #include <cassert>
 #include <climits>
+#include <unordered_map>
 
 namespace dbscan {
 
@@ -193,24 +194,34 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
     }
     std::cerr << "converged in " << num_iterations << " iterations" << std::endl;
 
-    std::vector<int32_t> labels_bin_vector(std::size(labels_), 0);
-    for (const auto& class_label : labels_) {
-        if (class_label != undefined && class_label != noise) {
-            labels_bin_vector.at(static_cast<uint32_t>(class_label)) = 1;
+    std::unordered_map<Label, Label> labels_map;
+    labels_map.reserve(labels_.size());
+
+    Label num_labels{0};
+    for (const auto l : labels_){
+        if (! labels_map.contains(l)) {
+            labels_map[l] = num_labels;
+            num_labels++;
         }
     }
-    std::vector<uint32_t> real_class_ids_2_new_class_ids;
-    real_class_ids_2_new_class_ids.reserve(labels_bin_vector.size());
-    std::inclusive_scan(
-        labels_bin_vector.begin(), labels_bin_vector.end(), std::back_inserter(real_class_ids_2_new_class_ids));
+    labels_map[noise] = noise;
+
+//
+//
+//    std::vector<int32_t> labels_bin_vector(std::size(labels_), 0);
+//    for (const auto& class_label : labels_) {
+//        if (class_label != undefined && class_label != noise) {
+//            labels_bin_vector.at(static_cast<uint32_t>(class_label)) = 1;
+//        }
+//    }
+//    std::vector<uint32_t> real_class_ids_2_new_class_ids;
+//    real_class_ids_2_new_class_ids.reserve(labels_bin_vector.size());
+//    std::inclusive_scan(
+//        labels_bin_vector.begin(), labels_bin_vector.end(), std::back_inserter(real_class_ids_2_new_class_ids));
 
     std::vector<Label> labels(std::size(labels_));
     for (auto i{0U}; i < std::size(labels_); ++i) {
-        if (labels_[i] == undefined || labels[i] == noise) {
-            labels[new_point_to_point_index_map[i]] = noise;
-        } else {
-            labels[new_point_to_point_index_map[i]] = real_class_ids_2_new_class_ids[labels_[i]] - 1;
-        }
+        labels.at(i) = labels_map[labels_.at(i)];
     }
 
     std::cerr << "returning labels" << std::endl;
