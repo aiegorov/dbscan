@@ -156,7 +156,6 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
                 }
             }
         }
-//        labels_.at(i) = static_cast<Label>(i);
     }
     const auto now_2 = std::chrono::system_clock::now();
     const std::uint32_t duration = std::chrono::duration_cast<std::chrono::milliseconds>(now_2 - now_1).count();
