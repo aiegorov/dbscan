@@ -159,6 +159,9 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
         }
         const auto ts_after_loop1 = std::chrono::system_clock::now();
         const auto loop1_duration = std::chrono::duration_cast<std::chrono::nanoseconds>(ts_after_loop1 - ts_before_loop1).count();
+        if (loop1_duration < 0) {
+            std::cerr << "DURATION < 0 !!!!!" << std::endl;
+        }
         aggregate_loop1_ns.at(i) = static_cast<unsigned long long>(loop1_duration);
 
 
