@@ -135,7 +135,7 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
         constexpr std::array<int, 9> dx = {-1, +0, +1, -1, +0, +1, -1, +0, +1};
         constexpr std::array<int, 9> dy = {-1, -1, -1, +0, +0, +0, +1, +1, +1};
         const auto ts_after_pre_process = std::chrono::system_clock::now();
-        const unsigned long pre_process_duration = std::chrono::duration_cast<std::chrono::nanoseconds>(ts_after_pre_process - ts_before_pre_process).count();
+        const auto pre_process_duration = std::chrono::duration_cast<std::chrono::nanoseconds>(ts_after_pre_process - ts_before_pre_process).count();
         aggregate_pre_process_ns.at(i) = pre_process_duration;
 
         const auto ts_before_loop1 = std::chrono::system_clock::now();
@@ -158,7 +158,7 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
             }
         }
         const auto ts_after_loop1 = std::chrono::system_clock::now();
-        const unsigned long loop1_duration = std::chrono::duration_cast<std::chrono::nanoseconds>(ts_after_loop1 - ts_before_loop1).count();
+        const auto loop1_duration = std::chrono::duration_cast<std::chrono::nanoseconds>(ts_after_loop1 - ts_before_loop1).count();
         aggregate_loop1_ns.at(i) = loop1_duration;
 
 
@@ -174,7 +174,7 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
             }
         }
         const auto ts_after_cp_part = std::chrono::system_clock::now();
-        const unsigned long cp_part_duration  = std::chrono::duration_cast<std::chrono::nanoseconds>(ts_after_cp_part - ts_before_cp_part).count();
+        const auto cp_part_duration  = std::chrono::duration_cast<std::chrono::nanoseconds>(ts_after_cp_part - ts_before_cp_part).count();
         aggregate_cp_part_ns.at(i) = cp_part_duration;
     }
 
