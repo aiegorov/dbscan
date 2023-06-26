@@ -200,7 +200,7 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
     Label num_labels{0};
     labels_map[noise] = noise;
     for (const auto l : labels_){
-        if (! labels_map.contains(l)) {
+        if (labels_map.find(l) == labels_map.end()) {
             labels_map[l] = num_labels;
             num_labels++;
         }

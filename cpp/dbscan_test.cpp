@@ -45,7 +45,7 @@ TEST_CASE("basic synthetic data test")
     for (auto const& lp : labels_and_points) {
         points.push_back(lp.second);
     }
-    dbscan::Dbscan dbscan{0.8, 10, 200'000};
+    dbscan::Dbscan dbscan{0.85, 10, 200'000};
     ScopedTimer timer{};
     std::cout << "Running fit_predict" << std::endl;
     auto const labels = dbscan.fit_predict(points);
@@ -66,7 +66,7 @@ TEST_CASE("basic synthetic data test")
                 label_count[labels[point_index]] += 1;
             }
         }
-        int total_points{};
+        int total_points{0};
         int max_points{0};
         for (auto const [_, count] : label_count) {
             total_points += count;
