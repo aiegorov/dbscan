@@ -179,13 +179,13 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
     }
 
     auto aggr_duration = std::accumulate(aggregate_pre_process_ns.begin(), aggregate_pre_process_ns.end(), 0);
-    std::cerr << "aggregate pre-process duration " << aggr_duration / 1e6 << " ms" << std::endl;
+    std::cerr << "aggregate pre-process duration " << aggr_duration / 1000000.0 << " ms" << std::endl;
 
     aggr_duration = std::accumulate(aggregate_loop1_ns.begin(), aggregate_loop1_ns.end(), 0);
-    std::cerr << "aggregate loop1 duration " << aggr_duration / 1e6 << " ms" << std::endl;
+    std::cerr << "aggregate loop1 duration " << aggr_duration / 1000000.0 << " ms" << std::endl;
 
     aggr_duration = std::accumulate(aggregate_cp_part_ns.begin(), aggregate_cp_part_ns.end(), 0);
-    std::cerr << "aggregate cp part duration " << aggr_duration / 1e6 << " ms" << std::endl;
+    std::cerr << "aggregate cp part duration " << aggr_duration / 1000000.0 << " ms" << std::endl;
 
     const auto now_2 = std::chrono::system_clock::now();
     const std::uint32_t duration = std::chrono::duration_cast<std::chrono::milliseconds>(now_2 - now_1).count();
