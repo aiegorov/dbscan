@@ -221,7 +221,7 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
 
     std::vector<Label> labels(std::size(labels_));
     for (auto i{0U}; i < std::size(labels_); ++i) {
-        labels.at(i) = labels_map[labels_.at(i)];
+        labels.at(new_point_to_point_index_map.at(i)) = labels_map[labels_.at(i)];
     }
 
     std::cerr << "returning labels" << std::endl;
