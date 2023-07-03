@@ -46,11 +46,11 @@ void Dbscan::update_durations_(std::uint32_t new_duration){
 
 auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vector<Dbscan::Label>
 {
-    std::vector<unsigned long long> aggregate_pre_process_ns(points.size());
-    std::vector<unsigned long long> aggregate_loop1_ns(points.size());
-    std::vector<unsigned long long> aggregate_cp_part_ns(points.size());
+    std::vector<unsigned long long> aggregate_pre_process_durations(points.size());
+    std::vector<unsigned long long> aggregate_neighbor_search_durations(points.size());
+    std::vector<unsigned long long> aggregate_core_point_durations(points.size());
 
-    std::cerr << "Got points" << std::endl;
+    const auto start_fn_ts = std::chrono::system_clock::now();
 
     labels_.assign(std::size(points), undefined);
     visited_.assign(std::size(points), false);
@@ -112,11 +112,17 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
         new_points[new_pt_index] = pt;
         new_point_to_point_index_map[new_pt_index] = i++;
     }
+    
+    
+    const auto after_sort_ts = std::chrono::system_clock::now();
+    const auto resort_duration {std::chrono::duration_cast<std::chrono::microseconds>(after_sort_ts - start_fn_ts).count()};
+    std::cerr << "Re-sorting of points took " << resort_duration << " microsecs" << std::endl;
+
 
     //  figuring out which points are the neighbors
-
-    static std::array<std::vector<std::uint32_t>, 32> neighbors;
-    for (auto i = 0; i < 32; ++i) neighbors[i].reserve(16364);
+//
+//    static std::array<std::vector<std::uint32_t>, 32> neighbors;
+//    for (auto i = 0; i < 32; ++i) neighbors[i].reserve(16364);
 
     auto square = [](float const v) -> float {
         return v * v;
@@ -129,9 +135,9 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
     std::vector<std::array<std::int32_t, 3>> core_points_ids;
     core_points_ids.assign(new_points.size(), {-1, -1, -1});
 
-    const auto now_1 = std::chrono::system_clock::now();
-
     constexpr uint32_t n_threads{16};
+    
+    const auto before_paral_loop_ts = std::chrono::system_clock::now();
 
     #pragma omp parallel for
     for (auto i = 0UL; i < std::size(new_points); ++i) {
@@ -146,9 +152,9 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
         constexpr std::array<int, 9> dy = {-1, -1, -1, +0, +0, +0, +1, +1, +1};
         const auto ts_after_pre_process = std::chrono::system_clock::now();
         const auto pre_process_duration = std::chrono::duration_cast<std::chrono::nanoseconds>(ts_after_pre_process - ts_before_pre_process).count();
-        aggregate_pre_process_ns.at(i) = static_cast<unsigned long long>(pre_process_duration);
+        aggregate_pre_process_durations.at(i) = static_cast<unsigned long long>(pre_process_duration);
 
-        const auto ts_before_loop1 = std::chrono::system_clock::now();
+        const auto before_neighbor_ts = std::chrono::system_clock::now();
         for (auto ni = 0; ni < 9; ++ni) {
             auto const nx = bin_x + dx[ni];
             auto const ny = bin_y + dy[ni];
@@ -167,10 +173,9 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
                 }
             }
         }
-        const auto ts_after_loop1 = std::chrono::system_clock::now();
-        const auto loop1_duration = std::chrono::duration_cast<std::chrono::nanoseconds>(ts_after_loop1 - ts_before_loop1).count();
-        aggregate_loop1_ns.at(i) = static_cast<unsigned long long>(loop1_duration);
-
+        const auto after_neighbor_ts = std::chrono::system_clock::now();
+        const auto neighbor_duration = std::chrono::duration_cast<std::chrono::nanoseconds>(after_neighbor_ts - before_neighbor_ts).count();
+        aggregate_neighbor_search_durations.at(i) = static_cast<unsigned long long>(neighbor_duration);
 
         const auto ts_before_cp_part = std::chrono::system_clock::now();
         if (std::size(local_neighbors) > min_samples_) {
@@ -185,29 +190,31 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
         }
         const auto ts_after_cp_part = std::chrono::system_clock::now();
         const auto cp_part_duration  = std::chrono::duration_cast<std::chrono::nanoseconds>(ts_after_cp_part - ts_before_cp_part).count();
-        aggregate_cp_part_ns.at(i) = static_cast<unsigned long long>(cp_part_duration);
+        aggregate_core_point_durations.at(i) = static_cast<unsigned long long>(cp_part_duration);
     }
 
-    auto aggr_duration = std::accumulate(aggregate_pre_process_ns.begin(), aggregate_pre_process_ns.end(), 0ll);
-    std::cerr << "aggregate pre-process duration " << aggr_duration / 1000000.0 << " ms" << std::endl;
-    std::cerr << "mean pre-process duration " << aggr_duration / 1000000.0 / aggregate_pre_process_ns.size() << " ms" << std::endl;
+    const auto after_paral_loop_ts = std::chrono::system_clock::now();
+    const auto parallel_loop_duration {std::chrono::duration_cast<std::chrono::milliseconds>(after_paral_loop_ts - before_paral_loop_ts).count()};
+    std::cerr << "Parallelized for loop took  " << parallel_loop_duration << " ms" << std::endl;
+    update_durations_(parallel_loop_duration);
+    std::cerr << "-- Mean parallel loop duration is " << std::accumulate(durations_.begin(), durations_.end(), 0) / durations_.size() << " ms" << std::endl;
 
-    aggr_duration = std::accumulate(aggregate_loop1_ns.begin(), aggregate_loop1_ns.end(), 0ll);
-    std::cerr << "aggregate neighbour search duration " << aggr_duration / 1000000.0 << " ms" << std::endl;
-    auto mean_duration{aggr_duration / 1000000.0 / aggregate_loop1_ns.size()};
-    std::cerr << "mean neighbour search duration " << mean_duration << " ms" << std::endl;
-    std::cerr << "mean duration * n_points / n_threads = " <<  (mean_duration * points.size()) / n_threads << std::endl;
+    // analyzing measurements collected in the parallelized loop
+    auto aggr_duration = std::accumulate(aggregate_pre_process_durations.begin(), aggregate_pre_process_durations.end(), 0ll);
+    std::cerr << "-- aggregate pre-process duration " << aggr_duration / 1000000.0 << " ms" << std::endl;
+    std::cerr << "-- mean pre-process duration " << aggr_duration / 1000000.0 / aggregate_pre_process_durations.size() << " ms" << std::endl;
 
-    aggr_duration = std::accumulate(aggregate_cp_part_ns.begin(), aggregate_cp_part_ns.end(), 0ll);
-    std::cerr << "aggregate core points part duration " << aggr_duration / 1000000.0 << " ms" << std::endl;
-    std::cerr << "mean core points part duration " << aggr_duration / 1000000.0 / aggregate_cp_part_ns.size() << " ms" << std::endl;
+    aggr_duration = std::accumulate(aggregate_neighbor_search_durations.begin(), aggregate_neighbor_search_durations.end(), 0ll);
+    std::cerr << "-- aggregate neighbour search duration " << aggr_duration / 1000000.0 << " ms" << std::endl;
+    auto mean_duration{aggr_duration / 1000000.0 / aggregate_neighbor_search_durations.size()};
+    std::cerr << "-- mean neighbour search duration " << mean_duration << " ms" << std::endl;
+    std::cerr << "-- mean duration * n_points / n_threads = " <<  (mean_duration * points.size()) / n_threads << std::endl;
 
+    aggr_duration = std::accumulate(aggregate_core_point_durations.begin(), aggregate_core_point_durations.end(), 0ll);
+    std::cerr << "-- aggregate core points part duration " << aggr_duration / 1000000.0 << " ms" << std::endl;
+    std::cerr << "-- mean core points part duration " << aggr_duration / 1000000.0 / aggregate_core_point_durations.size() << " ms" << std::endl;
 
-    const auto now_2 = std::chrono::system_clock::now();
-    const std::uint32_t duration = std::chrono::duration_cast<std::chrono::milliseconds>(now_2 - now_1).count();
-    std::cerr << "Block in question took " << duration << " ms" << std::endl;
-    update_durations_(duration);
-    std::cerr << "Mean duration is " << std::accumulate(durations_.begin(), durations_.end(), 0) / durations_.size() << " ms" << std::endl;
+    const auto before_post_process_ts = std::chrono::system_clock::now();
 
     for (auto i{0UL}; i < new_points.size(); ++i) {
         if (core_points_ids.at(i).at(0) >= 0) {
@@ -256,7 +263,9 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
         labels.at(new_point_to_point_index_map.at(i)) = labels_map[labels_.at(i)];
     }
 
-    std::cerr << "returning labels" << std::endl;
+    const auto after_post_process_ts = std::chrono::system_clock::now();
+    const auto post_process_duration  = std::chrono::duration_cast<std::chrono::microseconds>(after_post_process_ts - before_post_process_ts).count();
+    std::cerr << "Post-processing (incl converging) took  " << post_process_duration << " microsecs" << std::endl;
 
     return labels;
 }
