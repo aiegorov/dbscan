@@ -12,8 +12,16 @@
 #include <cassert>
 #include <climits>
 #include <unordered_map>
+//#include <omp.h>
 
 namespace dbscan {
+
+int omp_thread_count() {
+    int n = 0;
+    #pragma omp parallel reduction(+:n)
+    n += 1;
+    return n;
+}
 
 Dbscan::Dbscan(float const eps, std::uint32_t const min_samples, std::size_t const num_points_hint)
     : eps_squared_{eps * eps}
@@ -123,6 +131,8 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
 
     const auto now_1 = std::chrono::system_clock::now();
 
+    constexpr uint32_t n_threads{16};
+
     #pragma omp parallel for
     for (auto i = 0UL; i < std::size(new_points); ++i) {
         const auto ts_before_pre_process = std::chrono::system_clock::now();
@@ -159,9 +169,6 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
         }
         const auto ts_after_loop1 = std::chrono::system_clock::now();
         const auto loop1_duration = std::chrono::duration_cast<std::chrono::nanoseconds>(ts_after_loop1 - ts_before_loop1).count();
-        if (loop1_duration < 0) {
-            std::cerr << "DURATION < 0 !!!!!" << std::endl;
-        }
         aggregate_loop1_ns.at(i) = static_cast<unsigned long long>(loop1_duration);
 
 
@@ -186,12 +193,15 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
     std::cerr << "mean pre-process duration " << aggr_duration / 1000000.0 / aggregate_pre_process_ns.size() << " ms" << std::endl;
 
     aggr_duration = std::accumulate(aggregate_loop1_ns.begin(), aggregate_loop1_ns.end(), 0ll);
-    std::cerr << "aggregate loop1 duration " << aggr_duration / 1000000.0 << " ms" << std::endl;
-    std::cerr << "mean loop1 duration " << aggr_duration / 1000000.0 / aggregate_loop1_ns.size() << " ms" << std::endl;
+    std::cerr << "aggregate neighbour search duration " << aggr_duration / 1000000.0 << " ms" << std::endl;
+    auto mean_duration{aggr_duration / 1000000.0 / aggregate_loop1_ns.size()};
+    std::cerr << "mean neighbour search duration " << mean_duration << " ms" << std::endl;
+    std::cerr << "mean duration * n_points / n_threads = " <<  (mean_duration * points.size()) / n_threads << std::endl;
 
     aggr_duration = std::accumulate(aggregate_cp_part_ns.begin(), aggregate_cp_part_ns.end(), 0ll);
-    std::cerr << "aggregate cp part duration " << aggr_duration / 1000000.0 << " ms" << std::endl;
-    std::cerr << "mean cp part duration " << aggr_duration / 1000000.0 / aggregate_cp_part_ns.size() << " ms" << std::endl;
+    std::cerr << "aggregate core points part duration " << aggr_duration / 1000000.0 << " ms" << std::endl;
+    std::cerr << "mean core points part duration " << aggr_duration / 1000000.0 / aggregate_cp_part_ns.size() << " ms" << std::endl;
+
 
     const auto now_2 = std::chrono::system_clock::now();
     const std::uint32_t duration = std::chrono::duration_cast<std::chrono::milliseconds>(now_2 - now_1).count();
