@@ -124,8 +124,7 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
         new_points[new_pt_index] = pt;
         new_point_to_point_index_map[new_pt_index] = i++;
     }
-    
-    
+
     const auto after_sort_ts = std::chrono::system_clock::now();
     const auto resort_duration {std::chrono::duration_cast<std::chrono::microseconds>(after_sort_ts - start_fn_ts).count()};
     std::cerr << "Re-sorting of points took " << resort_duration << " microsecs" << std::endl;
@@ -175,15 +174,21 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
             }
             auto const neighbor_bin = ny * num_bins_x + nx;
 //            std::cerr << "Will be going over " << counts[neighbor_bin] << " points" << std::endl;
+            constexpr uint32_t neighbors_cap{100};
+            uint32_t neighbors_counter{0};
+
             for (auto j{0U}; j < counts[neighbor_bin]; ++j) {
-                auto const neighbor_pt_index = offsets[neighbor_bin] + j;
-                if (neighbor_pt_index == i) {
-                    continue;
+                if (neighbors_counter < neighbors_cap) {
+                    auto const neighbor_pt_index = offsets[neighbor_bin] + j;
+                    if (neighbor_pt_index == i) {
+                        continue;
+                    }
+                    auto const & neighbor_pt = new_points[neighbor_pt_index];
+                    if ((square(neighbor_pt[0] - pt[0]) + square(neighbor_pt[1] - pt[1])) < eps_squared_) {
+                        local_neighbors.push_back(neighbor_pt_index);
+                    }
                 }
-                auto const & neighbor_pt = new_points[neighbor_pt_index];
-                if ((square(neighbor_pt[0] - pt[0]) + square(neighbor_pt[1] - pt[1])) < eps_squared_) {
-                    local_neighbors.push_back(neighbor_pt_index);
-                }
+                neighbors_counter++;
             }
         }
         const auto after_neighbor_ts = std::chrono::system_clock::now();
