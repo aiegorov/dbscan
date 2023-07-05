@@ -1,4 +1,7 @@
 """Tests of DBSCAN C++ modules from Python."""
+
+import os
+from pathlib import Path
 import sys
 
 import numpy as np
@@ -8,7 +11,7 @@ from sklearn import cluster, datasets
 from cpp import py_dbscan
 
 
-def test_moon():
+def _test_moon():
     """Basic test using two moons sample."""
 
     X, _ = datasets.make_moons(n_samples=1000)
@@ -33,6 +36,7 @@ def test_moon():
     # assert num_matching == pytest.approx(100, abs=10)
 
 
+<<<<<<< HEAD
 def test_blobs():
     """Test using 20 2-D blobs samples."""
     centers = (
@@ -65,6 +69,27 @@ def test_blobs():
     dbscan = py_dbscan.DBSCAN(0.5, 20)
     y_pred = dbscan.fit_predict(X)
     assert all(np.count_nonzero(y_pred == label) == 500 for label in range(n_blobs))
+
+
+def read_pcs_from_numpy(path: str):
+    for numpy_f in os.listdir(path):
+        print(f"Reading from file {numpy_f}")
+        batch = np.load(str(Path(path) / numpy_f))
+        for pc in batch:
+            yield pc
+
+
+def test_real_data():
+    path = "/home/andrii/data/recordings/2023-03-13/particles_np/"
+    dbscan = py_dbscan.DBSCAN(0.5, 10)
+    max_n_ponts = 30000
+    # for pc in read_pcs_from_numpy(path):
+    for _ in range(100):
+        pc = next(read_pcs_from_numpy(path))
+        pc = pc[np.random.choice(pc.shape[0], max_n_ponts, replace=False)]
+        res = dbscan.fit_predict(pc[:, :2])
+        print("\n")
+        # print(len(res))
 
 
 if __name__ == "__main__":

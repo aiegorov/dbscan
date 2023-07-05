@@ -28,6 +28,18 @@ py_binary(
     ],
 )
 
+py_binary(
+    name = "run_dbscan",
+    srcs = ["run_dbscan.py"],
+    data = [
+        "//cpp:py_dbscan.so",
+    ],
+    deps = [
+#        requirement("scikit-learn"),
+        requirement("numpy"),
+    ],
+)
+
 py_test(
     name = "dbscan_test",
     timeout = "short",

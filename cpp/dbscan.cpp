@@ -83,6 +83,8 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
     auto const num_bins_x = static_cast<std::uint32_t>(std::ceil(range_x / eps));
     auto const num_bins_y = static_cast<std::uint32_t>(std::ceil(range_y / eps));
 
+    std::cout << "num_binx, num bin y = " << num_bins_x << ", " << num_bins_y << std::endl;
+
     // count number of points in every bin
     std::vector<std::uint32_t> counts(num_bins_x * num_bins_y);
 
@@ -91,8 +93,17 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
         auto const bin_x = static_cast<std::uint32_t>(std::floor((pt[0] - min[0]) / eps));
         auto const bin_y = static_cast<std::uint32_t>(std::floor((pt[1] - min[1]) / eps));
         auto const index = bin_y * num_bins_x + bin_x;
+//        std::cout << "Point " << pt[0] << ", " << pt[1] << " got index " << index << std::endl;
         counts[index] += 1;
     }
+
+//    std::cout << "Counts: ";
+    std::cerr << "Max counts: " << *std::max_element(counts.begin(), counts.end()) << std::endl;
+
+//    for (const auto & count : counts){
+//        std::cout << count << " ";
+//    }
+//    std::cout << std::endl;
 
     // calculate the offsets for each cell (bin)
     std::vector<std::uint32_t> offsets{};
@@ -163,6 +174,7 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
                 continue;
             }
             auto const neighbor_bin = ny * num_bins_x + nx;
+//            std::cerr << "Will be going over " << counts[neighbor_bin] << " points" << std::endl;
             for (auto j{0U}; j < counts[neighbor_bin]; ++j) {
                 auto const neighbor_pt_index = offsets[neighbor_bin] + j;
                 if (neighbor_pt_index == i) {
@@ -180,6 +192,7 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
 
         const auto ts_before_cp_part = std::chrono::system_clock::now();
         if (std::size(local_neighbors) > min_samples_) {
+//            std::cerr << "Found " << local_neighbors.size() << " neighbours" << std::endl;
             for (auto const n : local_neighbors) {
                 for (auto cp_id{0U}; cp_id < core_points_ids.at(n).size(); ++cp_id) {
                     if (core_points_ids.at(n).at(cp_id) == -1) {
@@ -279,6 +292,7 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
     const auto after_post_process_ts = std::chrono::system_clock::now();
     const auto post_process_duration  = std::chrono::duration_cast<std::chrono::microseconds>(after_post_process_ts - before_post_process_ts).count();
     std::cerr << "Post-processing (incl converging) took  " << post_process_duration << " microsecs" << std::endl;
+    std::cerr << std::endl;
 
     return labels;
 }
