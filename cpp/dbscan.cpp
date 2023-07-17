@@ -40,13 +40,6 @@ void Dbscan::update_durations_(std::uint32_t new_duration){
 
 auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vector<Dbscan::Label>
 {
-    std::vector<unsigned long long> aggregate_pre_process_durations(points.size());
-    std::vector<unsigned long long> aggregate_neighbor_search_durations(points.size());
-    std::vector<unsigned long long> aggregate_core_point_durations(points.size());
-    std::vector<unsigned long long> aggregate_overall_loop_durations(points.size());
-
-    const auto start_fn_ts = std::chrono::system_clock::now();
-
     labels_.assign(std::size(points), undefined);
     visited_.assign(std::size(points), false);
 
@@ -110,10 +103,6 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
         new_point_to_point_index_map[new_pt_index] = i++;
     }
 
-    const auto after_sort_ts = std::chrono::system_clock::now();
-    const auto resort_duration {std::chrono::duration_cast<std::chrono::microseconds>(after_sort_ts - start_fn_ts).count()};
-    std::cerr << "Re-sorting of points took " << resort_duration << " microsecs" << std::endl;
-
     auto square = [](float const v) -> float {
         return v * v;
     };
@@ -131,7 +120,7 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
 
     #pragma omp parallel for
     for (auto i = 0UL; i < std::size(new_points); ++i) {
-        const auto ts_before_pre_process = std::chrono::system_clock::now();
+
         auto const& pt = new_points[i];
         auto const bin_x = static_cast<std::int32_t>(std::floor((pt[0] - min[0]) / eps));
         auto const bin_y = static_cast<std::int32_t>(std::floor((pt[1] - min[1]) / eps));
@@ -140,11 +129,7 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
 
         constexpr std::array<int, 9> dx = {-1, +0, +1, -1, +0, +1, -1, +0, +1};
         constexpr std::array<int, 9> dy = {-1, -1, -1, +0, +0, +0, +1, +1, +1};
-        const auto ts_after_pre_process = std::chrono::system_clock::now();
-        const auto pre_process_duration = std::chrono::duration_cast<std::chrono::nanoseconds>(ts_after_pre_process - ts_before_pre_process).count();
-        aggregate_pre_process_durations.at(i) = static_cast<unsigned long long>(pre_process_duration);
 
-        const auto before_neighbor_ts = std::chrono::system_clock::now();
         for (auto ni = 0; ni < 9; ++ni) {
             auto const nx = bin_x + dx[ni];
             auto const ny = bin_y + dy[ni];
@@ -164,11 +149,7 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
                     }
             }
         }
-        const auto after_neighbor_ts = std::chrono::system_clock::now();
-        const auto neighbor_duration = std::chrono::duration_cast<std::chrono::nanoseconds>(after_neighbor_ts - before_neighbor_ts).count();
-        aggregate_neighbor_search_durations.at(i) = static_cast<unsigned long long>(neighbor_duration);
 
-        const auto ts_before_cp_part = std::chrono::system_clock::now();
         if (std::size(local_neighbors) > min_samples_) {
             for (auto const n : local_neighbors) {
                 for (auto cp_id{0U}; cp_id < core_points_ids.at(n).size(); ++cp_id) {
@@ -179,14 +160,7 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
                 }
             }
         }
-        const auto ts_after_cp_part = std::chrono::system_clock::now();
-        const auto cp_part_duration  = std::chrono::duration_cast<std::chrono::nanoseconds>(ts_after_cp_part - ts_before_cp_part).count();
-        aggregate_core_point_durations.at(i) = static_cast<unsigned long long>(cp_part_duration);
-
-        const auto overall_loop_duration = std::chrono::duration_cast<std::chrono::nanoseconds>(ts_after_cp_part - ts_before_pre_process).count();
-        aggregate_overall_loop_durations.at(i) = static_cast<unsigned long long>(overall_loop_duration);
     }
-
 
     for (auto i{0UL}; i < new_points.size(); ++i) {
         if (core_points_ids.at(i).at(0) >= 0) {
