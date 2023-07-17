@@ -1,7 +1,6 @@
 #include "cpp/dbscan.hpp"
 
 #include <cmath>
-#include <chrono>
 #include <iostream>
 #include <numeric>
 #include <algorithm>
@@ -10,17 +9,10 @@
 
 namespace dbscan {
 
-int omp_thread_count() {
-    int n = 0;
-    #pragma omp parallel reduction(+:n)
-    n += 1;
-    return n;
-}
 
 Dbscan::Dbscan(float const eps, std::uint32_t const min_samples, std::size_t const num_points_hint)
     : eps_squared_{eps * eps}
     , min_samples_{min_samples}
-    , max_durations_window_{1000}
 {
     if (num_points_hint > 0) {
         labels_.reserve(num_points_hint);
@@ -30,13 +22,6 @@ Dbscan::Dbscan(float const eps, std::uint32_t const min_samples, std::size_t con
     }
 }
 
-void Dbscan::update_durations_(std::uint32_t new_duration){
-
-    if (durations_.size() >= max_durations_window_ - 1){
-        durations_.pop_front();
-    }
-    durations_.push_back(new_duration);
-}
 
 auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vector<Dbscan::Label>
 {
@@ -47,7 +32,6 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
         return labels_;
     }
 
-    Label cluster_count{0};
     std::vector<Label> clusters{};
 
     // reorg point cloud
@@ -69,8 +53,6 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
     float const range_y = max[1] - min[1];
     auto const num_bins_x = static_cast<std::uint32_t>(std::ceil(range_x / eps));
     auto const num_bins_y = static_cast<std::uint32_t>(std::ceil(range_y / eps));
-
-    std::cout << "num_binx, num bin y = " << num_bins_x << ", " << num_bins_y << std::endl;
 
     // count number of points in every bin
     std::vector<std::uint32_t> counts(num_bins_x * num_bins_y);
@@ -109,14 +91,8 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
 
     std::vector<std::uint32_t> num_neighbors(std::size(new_points), 0);
 
-    const auto n_points{points.size()};
-
     std::vector<std::array<std::int32_t, 3>> core_points_ids;
     core_points_ids.assign(new_points.size(), {-1, -1, -1});
-
-    constexpr uint32_t n_threads{16};
-    
-    const auto before_paral_loop_ts = std::chrono::system_clock::now();
 
     #pragma omp parallel for
     for (auto i = 0UL; i < std::size(new_points); ++i) {
@@ -171,10 +147,8 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
     }
 
     bool converged{false};
-    int num_iterations{0};
 
     while (!converged) {
-        num_iterations++;
         converged = true;
         for (auto i{0UL}; i < new_points.size(); ++i) {
             if (labels_.at(i) == -1) continue;
@@ -190,7 +164,6 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
             }
         }
     }
-    std::cerr << "converged in " << num_iterations << " iterations" << std::endl;
 
     std::unordered_map<Label, Label> labels_map;
     labels_map.reserve(labels_.size());
