@@ -1,5 +1,4 @@
 #include "cpp/dbscan.hpp"
-#include <iostream>
 
 #include <pybind11/pybind11.h>
 #include <pybind11/numpy.h>
@@ -19,13 +18,11 @@ PYBIND11_MODULE(py_dbscan, m)
                          "only C-style float arrays of shape (N, 2) supported (N = number of points)"};
                  }
                  // TODO(ahans) get rid of the copies here
-//                 std::cout << "returning np array" << std::endl;
                  std::vector<dbscan::Dbscan::Point> points(buffer_info.shape[0]);
                  static_assert(sizeof(dbscan::Dbscan::Point) == 2 * sizeof(float));
                  std::memcpy(points.data(), buffer_info.ptr, buffer_info.shape[0] * sizeof(dbscan::Dbscan::Point));
                  auto labels{self->fit_predict(points)};
                  auto np_array{py::array_t<int>({buffer_info.shape[0]}, {sizeof(int)}, labels.data())};
-
                  return np_array;
              });
 }
