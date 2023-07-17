@@ -196,7 +196,6 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
 
         const auto ts_before_cp_part = std::chrono::system_clock::now();
         if (std::size(local_neighbors) > min_samples_) {
-//            std::cerr << "Found " << local_neighbors.size() << " neighbours" << std::endl;
             for (auto const n : local_neighbors) {
                 for (auto cp_id{0U}; cp_id < core_points_ids.at(n).size(); ++cp_id) {
                     if (core_points_ids.at(n).at(cp_id) == -1) {
@@ -261,11 +260,6 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
     for (auto i{0U}; i < std::size(labels_); ++i) {
         labels.at(new_point_to_point_index_map.at(i)) = labels_map[labels_.at(i)];
     }
-
-    const auto after_post_process_ts = std::chrono::system_clock::now();
-    const auto post_process_duration  = std::chrono::duration_cast<std::chrono::microseconds>(after_post_process_ts - before_post_process_ts).count();
-    std::cerr << "Post-processing (incl converging) took  " << post_process_duration << " microsecs" << std::endl;
-    std::cerr << std::endl;
 
     return labels;
 }
