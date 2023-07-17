@@ -1,18 +1,12 @@
 #include "cpp/dbscan.hpp"
 
-#ifdef NDEBUG
-#undef NDEBUG
-#endif
-
 #include <cmath>
 #include <chrono>
 #include <iostream>
 #include <numeric>
 #include <algorithm>
-#include <cassert>
 #include <climits>
 #include <unordered_map>
-//#include <omp.h>
 
 namespace dbscan {
 
@@ -93,17 +87,8 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
         auto const bin_x = static_cast<std::uint32_t>(std::floor((pt[0] - min[0]) / eps));
         auto const bin_y = static_cast<std::uint32_t>(std::floor((pt[1] - min[1]) / eps));
         auto const index = bin_y * num_bins_x + bin_x;
-//        std::cout << "Point " << pt[0] << ", " << pt[1] << " got index " << index << std::endl;
         counts[index] += 1;
     }
-
-//    std::cout << "Counts: ";
-    std::cerr << "Max counts: " << *std::max_element(counts.begin(), counts.end()) << std::endl;
-
-//    for (const auto & count : counts){
-//        std::cout << count << " ";
-//    }
-//    std::cout << std::endl;
 
     // calculate the offsets for each cell (bin)
     std::vector<std::uint32_t> offsets{};
@@ -128,12 +113,6 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
     const auto after_sort_ts = std::chrono::system_clock::now();
     const auto resort_duration {std::chrono::duration_cast<std::chrono::microseconds>(after_sort_ts - start_fn_ts).count()};
     std::cerr << "Re-sorting of points took " << resort_duration << " microsecs" << std::endl;
-
-
-    //  figuring out which points are the neighbors
-//
-//    static std::array<std::vector<std::uint32_t>, 32> neighbors;
-//    for (auto i = 0; i < 32; ++i) neighbors[i].reserve(16364);
 
     auto square = [](float const v) -> float {
         return v * v;
@@ -173,11 +152,8 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
                 continue;
             }
             auto const neighbor_bin = ny * num_bins_x + nx;
-            constexpr uint32_t neighbors_cap{100};
-            uint32_t neighbors_counter{0};
 
             for (auto j{0U}; j < counts[neighbor_bin]; ++j) {
-                if (neighbors_counter < neighbors_cap) {
                     auto const neighbor_pt_index = offsets[neighbor_bin] + j;
                     if (neighbor_pt_index == i) {
                         continue;
@@ -186,8 +162,6 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
                     if ((square(neighbor_pt[0] - pt[0]) + square(neighbor_pt[1] - pt[1])) < eps_squared_) {
                         local_neighbors.push_back(neighbor_pt_index);
                     }
-                }
-                neighbors_counter++;
             }
         }
         const auto after_neighbor_ts = std::chrono::system_clock::now();
