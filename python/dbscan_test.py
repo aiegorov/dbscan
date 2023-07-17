@@ -36,7 +36,6 @@ def _test_moon():
     # assert num_matching == pytest.approx(100, abs=10)
 
 
-<<<<<<< HEAD
 def test_blobs():
     """Test using 20 2-D blobs samples."""
     centers = (
