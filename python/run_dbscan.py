@@ -20,13 +20,10 @@ if __name__ == "__main__":
     eps = 0.5
     dbscan = py_dbscan.DBSCAN(eps, 10)
     max_n_ponts = 30000
-    # for pc in read_pcs_from_numpy(path):
-    # for _ in range(100):
+
     for _ in range(1):
         pc = next(read_pcs_from_numpy(path))
         print("Hist:")
-        # pc = pc[np.random.choice(pc.shape[0], max_n_ponts, replace=False)]
-        print(np.histogram(pc[:, 0], bins=600)[0])
+
         res = dbscan.fit_predict(pc[:, :2])
         print("\n")
-        # print(len(res))
