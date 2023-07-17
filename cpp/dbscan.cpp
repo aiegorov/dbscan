@@ -173,7 +173,6 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
                 continue;
             }
             auto const neighbor_bin = ny * num_bins_x + nx;
-//            std::cerr << "Will be going over " << counts[neighbor_bin] << " points" << std::endl;
             constexpr uint32_t neighbors_cap{100};
             uint32_t neighbors_counter{0};
 
@@ -215,37 +214,6 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
         aggregate_overall_loop_durations.at(i) = static_cast<unsigned long long>(overall_loop_duration);
     }
 
-    const auto after_paral_loop_ts = std::chrono::system_clock::now();
-    const auto parallel_loop_duration {std::chrono::duration_cast<std::chrono::milliseconds>(after_paral_loop_ts - before_paral_loop_ts).count()};
-    update_durations_(parallel_loop_duration);
-    const auto mean_loop_duration {std::accumulate(durations_.begin(), durations_.end(), 0) / durations_.size()};
-    std::cerr << "Parallelized for loop took  " << parallel_loop_duration << " ms (mean over the experiment = " << mean_loop_duration << " ms)" << std::endl;
-
-    std::cerr << "- Loop execution overall" << std::endl;
-    auto aggr_duration = std::accumulate(aggregate_overall_loop_durations.begin(), aggregate_overall_loop_durations.end(), 0ll);
-    std::cerr << "-- aggregate loop execution duration " << aggr_duration / 1000000.0 << " ms" << std::endl;
-    auto mean_duration{ aggr_duration / 1000000.0 / aggregate_overall_loop_durations.size()};
-    std::cerr << "-- mean loop execution duration " << mean_duration << " ms" << std::endl;
-    std::cerr << "-- mean duration * n_points / n_threads = " <<  (mean_duration * points.size()) / n_threads << std::endl;
-
-    // analyzing measurements collected in the parallelized loop
-    std::cerr << "- bin_x, biny calculation (neglectable, just for the sake of completion)" << std::endl;
-    aggr_duration = std::accumulate(aggregate_pre_process_durations.begin(), aggregate_pre_process_durations.end(), 0ll);
-    std::cerr << "-- aggregate duration " << aggr_duration / 1000000.0 << " ms" << std::endl;
-    std::cerr << "-- mean duration " << aggr_duration / 1000000.0 / aggregate_pre_process_durations.size() << " ms" << std::endl;
-
-    std::cerr << "- Neighbor search part" << std::endl;
-    aggr_duration = std::accumulate(aggregate_neighbor_search_durations.begin(), aggregate_neighbor_search_durations.end(), 0ll);
-    std::cerr << "-- aggregate duration " << aggr_duration / 1000000.0 << " ms" << std::endl;
-    mean_duration = aggr_duration / 1000000.0 / aggregate_neighbor_search_durations.size();
-    std::cerr << "-- mean duration " << mean_duration << " ms" << std::endl;
-
-    std::cerr << "- Core points part" << std::endl;
-    aggr_duration = std::accumulate(aggregate_core_point_durations.begin(), aggregate_core_point_durations.end(), 0ll);
-    std::cerr << "-- aggregate duration " << aggr_duration / 1000000.0 << " ms" << std::endl;
-    std::cerr << "-- mean duration " << aggr_duration / 1000000.0 / aggregate_core_point_durations.size() << " ms" << std::endl;
-
-    const auto before_post_process_ts = std::chrono::system_clock::now();
 
     for (auto i{0UL}; i < new_points.size(); ++i) {
         if (core_points_ids.at(i).at(0) >= 0) {
