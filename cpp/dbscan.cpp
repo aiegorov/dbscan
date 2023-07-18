@@ -1,9 +1,7 @@
 #include "cpp/dbscan.hpp"
 
 #include <cmath>
-#include <iostream>
 #include <numeric>
-#include <algorithm>
 #include <climits>
 #include <unordered_map>
 
@@ -35,7 +33,6 @@ auto Dbscan::fit_predict(std::vector<Dbscan::Point> const& points) -> std::vecto
     std::vector<Label> clusters{};
 
     // reorg point cloud
-
     auto const eps = std::sqrt(eps_squared_);
 
     // calculate min_max of the current point cloud

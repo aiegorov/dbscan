@@ -3,7 +3,6 @@
 #include <array>
 #include <cstdint>
 #include <vector>
-#include <deque>
 
 namespace dbscan {
 
@@ -29,7 +28,6 @@ private:
     std::vector<std::pair<std::uint32_t, float>> neighbors_;
     std::vector<bool> visited_;
     std::vector<std::uint32_t> to_visit_;
-
 };
 
 }  // namespace dbscan
